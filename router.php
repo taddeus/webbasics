@@ -13,14 +13,41 @@ namespace BasicWeb;
 require_once 'base.php';
 
 /**
+ * A Router is used to call a handler function with corresponding to an URL.
  * 
- * 
+ * Simple example: a website with the pages 'home' and 'contact'.
  * <code>
+ * function home() {
+ *     return 'This is the home page.';
+ * }
  * 
+ * function contact() {
+ *     return 'This is the contact page.';
+ * }
+ * 
+ * $router = new Router(array(
+ *     '/home' => 'home',
+ *     '/contact' => 'contact'
+ * ));
+ * $response = $router->call_handler('/home');     // 'This is the home page.'
+ * $response = $router->call_handler('/contact');  // 'This is the contact page.'
+ * </code>
+ * 
+ * You can use regular expression patterns to specify an URL. Any matches are
+ * passed to the handler funtion as parameters:
+ * <code>
+ * function page($pagename) {
+ *     return "This is the $pagename page.";
+ * }
+ * 
+ * $router = new Router(array(
+ *     '/(home|contact)' => 'page'
+ * ));
+ * $response = $router->call_handler('/home');     // 'This is the home page.'
+ * $response = $router->call_handler('/contact');  // 'This is the contact page.'
  * </code>
  * 
  * @package BasicWeb
- * @todo Example
  */
 class Router extends Base {
 	/**
