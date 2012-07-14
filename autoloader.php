@@ -45,10 +45,10 @@ require_once 'base.php';
  *   | bar.php  // Contains class 'Bar'
  * </code>
  * Autoloader::create('classes')->register();
- * Autoloader::create('other_classes')->register();
+ * Autoloader::create('other_classes', true)->register();
  * $foo = new Foo();  // Includes 'classes/foo.php'
  * $bar = new Bar();  // Includes 'other_classes/bar.php', since 'classes/bar.php' does not exist
- * $baz = new Baz();  // Throws an exception, since 'other_classes/baz.php' does not exist
+ * $baz = new Baz();  // Throws a FileNotFoundError, since 'other_classes/baz.php' does not exist
  * </code>
  * 
  * @package BasicWeb
