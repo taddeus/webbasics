@@ -7,7 +7,7 @@
  * @date 13-07-2012
  */
 
-namespace Minimalistic;
+namespace BasicWeb;
 
 require_once 'base.php';
 
@@ -52,7 +52,7 @@ require_once 'base.php';
  * $baz = new Baz();  // Throws an exception, since 'other_classes/baz.php' does not exist
  * </code>
  * 
- * @package Minimalistic
+ * @package BasicWeb
  */
 class Autoloader extends Base {
 	/**

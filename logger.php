@@ -7,14 +7,14 @@
  * @date 13-07-2012
  */
 
-namespace Minimalistic;
+namespace BasicWeb;
 
 /**
  * Logger class. 
  * 
  * A Logger object provides five functions to process log messages.
  * 
- * @package Minimalistic
+ * @package BasicWeb
  */
 class Logger {
 	const CRITICAL = 0;

@@ -1,24 +1,23 @@
 <?php
 /**
- * Commonly used classes used in the Minimalistic package.
+ * Commonly used classes used in the BasicWeb package.
  * 
  * @author Taddeus Kroes
  * @version 1.0
  * @date 13-07-2012
- * @package Minimalistic
  */
 
-namespace Minimalistic;
+namespace BasicWeb;
 
 require_once 'logger.php';
 
 /**
- * Base class for instantiable classes in the Minimalistic package.
+ * Base class for instantiable classes in the BasicWeb package.
  * 
  * The base class defines a static 'create' method that acts as a chainable
  * shortcut for the class constructor.
  * 
- * @package Minimalistic
+ * @package BasicWeb
  */
 abstract class Base {
 	/**
@@ -41,7 +40,7 @@ abstract class Base {
 /**
  * Exception, thrown when a required file does not exist.
  * 
- * @package Minimalistic
+ * @package BasicWeb
  */
 class FileNotFoundError extends \RuntimeException {
 	/**

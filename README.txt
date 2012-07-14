@@ -1,10 +1,11 @@
 -------
 Summary
 -------
-Minimalistic is a set of classes to create websites with. The core exists of
-a class autoloader, a template parser, a logger and some array manipulation
-functions. No MVC 'model' implementation is included, there are already many
-of these out there (PHPActiveRecord is recommended).
+BasicWeb is a set of classes that provides the minimal functionalities of a
+website. The core exists of a class autoloader, a template parser, a logger
+and some array manipulation functions. No MVC 'model' implementation is
+included, there are already many of these out there (PHPActiveRecord is
+recommended).
 
 ----------
 Unit tests

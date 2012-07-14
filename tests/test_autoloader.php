@@ -1,7 +1,7 @@
 <?php
 
 require_once 'autoloader.php';
-use Minimalistic\Autoloader;
+use BasicWeb\Autoloader;
 
 define('PATH', 'tests/_files/');
 
@@ -49,7 +49,7 @@ class AutoloaderTest extends PHPUnit_Framework_TestCase {
 	
 	/**
 	 * @depends test_create_path
-	 * @expectedException Minimalistic\FileNotFoundError
+	 * @expectedException BasicWeb\FileNotFoundError
 	 * @expectedExceptionMessage File "tests/_files/foobar.php" does not exist.
 	 */
 	function test_load_class_not_found() {
