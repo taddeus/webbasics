@@ -15,7 +15,27 @@ require_once 'logger.php';
  * Base class for instantiable classes in the BasicWeb package.
  * 
  * The base class defines a static 'create' method that acts as a chainable
- * shortcut for the class constructor.
+ * shortcut for the class constructor:
+ * <code>
+ * class Foo extends Base {
+ *     function __contruct($bar, $baz) {
+ *         $this->bar = bar;
+ *         $this->baz = baz;
+ *     }
+ * }
+ * 
+ * $foo = Foo::create('bar', 'baz');
+ * // is equivalent to:
+ * $foo = new Foo('bar', 'baz');
+ * </code>
+ * 
+ * The advantage of the 'create' constructor is that is allows chaining:
+ * <code>
+ * Foo::create('bar', 'baz')->method();
+ * // as opposed to:
+ * $foo = new Foo('bar', 'baz');
+ * $foo->method();
+ * </code>
  * 
  * @package BasicWeb
  */

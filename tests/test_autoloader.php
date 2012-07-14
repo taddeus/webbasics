@@ -147,7 +147,6 @@ class AutoloaderTest extends PHPUnit_Framework_TestCase {
 		$second_loader = new Autoloader(PATH.'second');
 		$this->autoloader->register();
 		$second_loader->register(true);  // Prepend so that the second loader attemps to load Bar first
-		$second_loader->set_throw_errors(false);
 		$this->assertInstanceOf('Foo', new FooBaz());
 	}
 }

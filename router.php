@@ -20,6 +20,7 @@ require_once 'base.php';
  * </code>
  * 
  * @package BasicWeb
+ * @todo Example
  */
 class Router extends Base {
 	/**

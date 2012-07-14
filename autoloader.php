@@ -35,8 +35,7 @@ require_once 'base.php';
  * $baz = new Foo\Bar\Baz();  // Includes 'classes/foo/bar/baz.php'
  * </code>
  * 
- * Multiple autoloaders can be registered at the same time. Be sure to disable
- * exceptions on the previously added loaders!
+ * Multiple autoloaders can be registered at the same time:
  * <code>
  * <code>
  * File structure:
@@ -45,7 +44,7 @@ require_once 'base.php';
  * other_classes/
  *   | bar.php  // Contains class 'Bar'
  * </code>
- * Autoloader::create('classes', false)->register();
+ * Autoloader::create('classes')->register();
  * Autoloader::create('other_classes')->register();
  * $foo = new Foo();  // Includes 'classes/foo.php'
  * $bar = new Bar();  // Includes 'other_classes/bar.php', since 'classes/bar.php' does not exist
