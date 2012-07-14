@@ -10,6 +10,34 @@ class AutoloaderTest extends PHPUnit_Framework_TestCase {
 		$this->autoloader = new Autoloader(PATH);
 	}
 	
+	
+	function test_set_root_namespace() {
+		$this->assertAttributeEquals('\\', 'root_namespace', $this->autoloader);
+		$this->autoloader->set_root_namespace('Foo');
+		$this->assertAttributeEquals('Foo\\', 'root_namespace', $this->autoloader);
+		$this->autoloader->set_root_namespace('Foo\\');
+		$this->assertAttributeEquals('Foo\\', 'root_namespace', $this->autoloader);
+	}
+	
+	/**
+	 * @depends test_set_root_namespace
+	 */
+	function test_get_root_namespace() {
+		$this->autoloader->set_root_namespace('Foo');
+		$this->assertEquals($this->autoloader->get_root_namespace(), 'Foo\\');
+	}
+	
+	/**
+	 * @depends test_set_root_namespace
+	 */
+	function test_strip_root_namespace() {
+		$strip = new ReflectionMethod('BasicWeb\Autoloader', 'strip_root_namespace');
+		$strip->setAccessible(true);
+		
+		$this->autoloader->set_root_namespace('Foo');
+		$this->assertEquals($strip->invoke($this->autoloader, 'Foo\Bar'), 'Bar');
+	}
+	
 	function test_path_with_slash() {
 		$this->assertEquals(Autoloader::path_with_slash('dirname'), 'dirname/');
 		$this->assertEquals(Autoloader::path_with_slash('dirname/'), 'dirname/');
@@ -41,13 +69,45 @@ class AutoloaderTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals($this->autoloader->create_path('FooBar\Baz'), PATH.'foo_bar/baz.php');
 	}
 	
+	function test_throw_errors() {
+		$this->assertFalse($this->autoloader->get_throw_errors());
+		$this->autoloader->set_throw_errors(true);
+		$this->assertTrue($this->autoloader->get_throw_errors());
+	}
+	
 	/**
 	 * @depends test_create_path
+	 * @depends test_throw_errors
+	 */
+	function test_load_class_not_found() {
+		$this->assertFalse($this->autoloader->load_class('foobar'));
+	}
+	
+	/**
+	 * @depends test_load_class_not_found
 	 * @expectedException BasicWeb\FileNotFoundError
 	 * @expectedExceptionMessage File "tests/_files/foobar.php" does not exist.
 	 */
-	function test_load_class_not_found() {
+	function test_load_class_not_found_error() {
+		$this->autoloader->set_throw_errors(true);
 		$this->autoloader->load_class('foobar');
+	}
+	
+	/**
+	 * @depends test_load_class_not_found
+	 * @expectedException BasicWeb\FileNotFoundError
+	 * @expectedExceptionMessage File "tests/_files/foobar.php" does not exist.
+	 */
+	function test_load_class_not_found_noerror_overwrite() {
+		$this->autoloader->load_class('foobar', true);
+	}
+	
+	/**
+	 * @depends test_load_class_not_found
+	 */
+	function test_load_class_not_found_error_overwrite() {
+		$this->autoloader->set_throw_errors(true);
+		$this->assertFalse($this->autoloader->load_class('foobar', false));
 	}
 	
 	/**
@@ -62,16 +122,21 @@ class AutoloaderTest extends PHPUnit_Framework_TestCase {
 	
 	/**
 	 * @depends test_load_class
+	 * @depends test_strip_root_namespace
+	 */
+	function test_load_class_root_namespace() {
+		$autoloader = new Autoloader(PATH.'foo');
+		$autoloader->set_root_namespace('Foo');
+		$this->assertTrue($autoloader->load_class('Bar'));
+		$this->assertTrue(class_exists('Foo\Bar', false));
+	}
+	
+	/**
+	 * @depends test_load_class
 	 */
 	function test_register() {
 		$this->autoloader->register();
 		$this->assertTrue(class_exists('Baz'));
-	}
-	
-	function test_throw_errors() {
-		$this->assertTrue($this->autoloader->get_throw_errors());
-		$this->autoloader->set_throw_errors(false);
-		$this->assertFalse($this->autoloader->get_throw_errors());
 	}
 	
 	/**

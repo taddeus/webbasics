@@ -1,6 +1,6 @@
 <?php
 /**
- * 
+ * A tool for autoloading PHP classes within a root directory and namespace.
  * 
  * @author Taddeus Kroes
  * @version 1.0
@@ -65,12 +65,11 @@ class Autoloader extends Base {
 	/**
 	 * The namespace classes in the root directory are expected to be in.
 	 * 
-	 * This namespace is removed from loaded class names.
+	 * This namespace is removed from the beginning of loaded class names.
 	 * 
 	 * @var string
-	 * @todo implement this
 	 */
-	private $root_namespace = '';
+	private $root_namespace = '\\';
 	
 	/**
 	 * Whether to throw an exception when a class file does not exist.
@@ -85,7 +84,7 @@ class Autoloader extends Base {
 	 * @param string $directory Root directory of the autoloader.
 	 * @param bool $throw Whether to throw an exception when a class file does not exist.
 	 */
-	function __construct($directory, $throw=true) {
+	function __construct($directory, $throw=false) {
 		$this->set_root_directory($directory);
 		$this->set_throw_errors($throw);
 	}
@@ -127,6 +126,28 @@ class Autoloader extends Base {
 	}
 	
 	/**
+	 * Set the root namespace that loaded classes are expected to be in.
+	 * 
+	 * @param string $directory The new root namespace.
+	 */
+	function set_root_namespace($namespace) {
+		// Assert that the namespace ends with a backslash
+		if( $namespace[strlen($namespace) - 1] != '\\' )
+			$namespace .= '\\';
+		
+		$this->root_namespace = $namespace;
+	}
+	
+	/**
+	 * Get the root namespace that loaded classes are expected to be in.
+	 * 
+	 * @return string
+	 */
+	function get_root_namespace() {
+		return $this->root_namespace;
+	}
+	
+	/**
 	 * Append a slash ('/') to the given directory name, if it is not already there.
 	 * 
 	 * @param string $directory The directory to append a slash to.
@@ -147,6 +168,21 @@ class Autoloader extends Base {
 	 */
 	static function classname_to_filename($classname) {
 		return strtolower(preg_replace('/(?<=.)([A-Z])/', '_\\1', $classname));
+	}
+	
+	/**
+	 * Strip the root namespace from the beginning of a class name.
+	 * 
+	 * @param string $classname The name of the class to strip the namespace from.
+	 * @return string The stripped class name.
+	 */
+	private function strip_root_namespace($classname) {
+		$begin = substr($classname, 0, strlen($this->root_namespace));
+		
+		if( $begin == $this->root_namespace )
+			$classname = substr($classname, strlen($this->root_namespace));
+		
+		return $classname;
 	}
 	
 	/**
@@ -180,14 +216,15 @@ class Autoloader extends Base {
 	 * @return bool
 	 * @throws FileNotFoundError If the class file does not exist.
 	 */
-	function load_class($classname, $throw=true) {
+	function load_class($classname, $throw=null) {
+		$classname = $this->strip_root_namespace($classname);
 		$path = $this->create_path($classname);
 		
 		if( !file_exists($path) ) {
-			if( !$throw || !$this->throw_errors )
-				return false;
+			if( $throw || ($throw === null && $this->throw_errors) )
+				throw new FileNotFoundError($path);
 			
-			throw new FileNotFoundError($path);
+			return false;
 		}
 		
 		require_once $path;
