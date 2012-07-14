@@ -56,10 +56,15 @@ class FileNotFoundError extends \RuntimeException {
 }
 
 /**
- * Format a string of the form 'foo %(bar)' with given parameters like array('bar' => 'some value').
+ * Format a string using parameters in an associative array.
+ * 
+ * <code>
+ * echo asprintf('foo %(bar)', array('bar' => 'baz'));  // prints 'foo baz'
+ * </code>
  * 
  * @param string $format The string to format.
- * @param array $params An associative array with parameters that are used in the format.
+ * @param array $params An associative array with parameters that are used in $format.
+ * @package BasicWeb
  */
 function asprintf($format, array $params) {
 	return preg_replace_callback(

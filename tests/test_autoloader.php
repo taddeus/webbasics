@@ -6,14 +6,8 @@ use BasicWeb\Autoloader;
 define('PATH', 'tests/_files/');
 
 class AutoloaderTest extends PHPUnit_Framework_TestCase {
-	var $autoloader;
-	
 	function setUp() {
 		$this->autoloader = new Autoloader(PATH);
-	}
-	
-	function tearDown() {
-		unset($this->autoloader);
 	}
 	
 	function test_path_with_slash() {
