@@ -34,7 +34,7 @@ require_once 'base.php';
  * </code>
  * 
  * You can use regular expression patterns to specify an URL. Any matches are
- * passed to the handler funtion as parameters:
+ * passed to the handler function as parameters:
  * <code>
  * function page($pagename) {
  *     return "This is the $pagename page.";
