@@ -13,8 +13,44 @@ require_once 'base.php';
 
 /**
  * Object that to automatically load classes within a root directory.
+ * Simple example: all classes are located in the 'classes' directory.
+ * <code>
+ * $loader = new Autoloader('classes');
+ * $loader->load_class('FooBar');  // Includes file 'classes/foo_bar.php'
+ * </code>
  * 
- * An Autoloader instance can register itself to the SPL autoload stack.
+ * An Autoloader instance can register itself to the SPL autoload stack, so
+ * that explicit 'include' statements for classes are not necessary anymore.
+ * Applied to the example above:
+ * <code>
+ * $loader = new Autoloader('classes');
+ * $loader->register();
+ * $foobar = new FooBar();  // File 'classes/foo_bar.php' is automatically included
+ * </code>
+ * 
+ * Namespaces are assumed to indicate subdirectories:
+ * <code=php>
+ * Autoloader::create('classes')->register();
+ * $bar = new Foo\Bar();      // Includes 'classes/foo/bar.php'
+ * $baz = new Foo\Bar\Baz();  // Includes 'classes/foo/bar/baz.php'
+ * </code>
+ * 
+ * Multiple autoloaders can be registered at the same time. Be sure to disable
+ * exceptions on the previously added loaders!
+ * <code>
+ * <code>
+ * File structure:
+ * classes/
+ *   | foo.php  // Contains class 'Foo'
+ * other_classes/
+ *   | bar.php  // Contains class 'Bar'
+ * </code>
+ * Autoloader::create('classes', false)->register();
+ * Autoloader::create('other_classes')->register();
+ * $foo = new Foo();  // Includes 'classes/foo.php'
+ * $bar = new Bar();  // Includes 'other_classes/bar.php', since 'classes/bar.php' does not exist
+ * $baz = new Baz();  // Throws an exception, since 'other_classes/baz.php' does not exist
+ * </code>
  * 
  * @package Minimalistic
  */
@@ -66,7 +102,7 @@ class Autoloader extends Base {
 	/**
 	 * Whether an exception is thrown when a class file does not exist.
 	 * 
-	 * @returns bool
+	 * @return bool
 	 */
 	function get_throw_errors() {
 		return $this->throw_errors;
@@ -84,7 +120,7 @@ class Autoloader extends Base {
 	/**
 	 * Get the root directory from which classes are loaded.
 	 * 
-	 * @returns string
+	 * @return string
 	 */
 	function get_root_directory() {
 		return $this->root_directory;
@@ -94,7 +130,7 @@ class Autoloader extends Base {
 	 * Append a slash ('/') to the given directory name, if it is not already there.
 	 * 
 	 * @param string $directory The directory to append a slash to.
-	 * @returns string
+	 * @return string
 	 */
 	static function path_with_slash($directory) {
 		return $directory[strlen($directory) - 1] == '/' ? $directory : $directory.'/';
@@ -107,7 +143,7 @@ class Autoloader extends Base {
 	 * by an underscore ('_').
 	 * 
 	 * @param string $classname The class name to convert.
-	 * @returns string
+	 * @return string
 	 */
 	static function classname_to_filename($classname) {
 		return strtolower(preg_replace('/(?<=.)([A-Z])/', '_\\1', $classname));
@@ -141,7 +177,7 @@ class Autoloader extends Base {
 	 * 
 	 * @param string $classname The name of the class to load, including pepended namespace.
 	 * @param bool $throw Whether to throw an exception if the class file does not exist.
-	 * @returns bool
+	 * @return bool
 	 * @throws FileNotFoundError If the class file does not exist.
 	 */
 	function load_class($classname, $throw=true) {
