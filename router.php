@@ -81,10 +81,8 @@ class Router extends Base {
 	 * function adds '%^' at the begin and '$%' at the end of the pattern as
 	 * delimiters.
 	 * 
-	 * The handler function must receive no arguments if the regex pattern
-	 * does not contain groups (which are contained in parentheses). If there
-	 * are groups, the matches for these are passed to the handler fucntion in
-	 * an array.
+	 * Any matches for groups in the pattern (which are contained in
+	 * parentheses), the matches for these are passed to the handler function.
 	 * 
 	 * @param string $pattern A regex pattern to mach URL's against.
 	 * @param mixed $handler The handler function to call when $pattern is matched.
