@@ -9,6 +9,8 @@
 
 namespace WebBasics;
 
+require_once 'base.php';
+
 /**
  * Logger class. 
  * 
@@ -16,13 +18,14 @@ namespace WebBasics;
  * 
  * @package WebBasics
  */
-class Logger {
+class Logger extends Base {
 	const CRITICAL = 0;
 	const ERROR = 1;
 	const WARNING = 2;
 	const INFO = 3;
 	const DEBUG = 4;
 	static $level_names = array('CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG');
+	private static $allowed_dump_formats = array('plain', 'html', 'file');
 	
 	const DEFAULT_FORMAT = '%(datetime): %(level): %(message)';
 	
@@ -30,6 +33,19 @@ class Logger {
 	private $output = array();
 	private $format = self::DEFAULT_FORMAT;
 	private $level = self::WARNING;
+	private $dump_format = 'plain';
+	private $log_directory = '';
+	
+	function set_directory($directory) {
+		$this->log_directory = self::path_with_slash($directory);
+	}
+	
+	function set_dump_format($format) {
+		if( !in_array($format, self::$allowed_dump_formats) )
+			throw new InvalidArgumentException(sprintf('', $format));
+		
+		$this->dump_format = $format;
+	}
 	
 	function set_format($format) {
 		$this->format = (string)$format;
@@ -119,8 +135,18 @@ class Logger {
 		return $output;
 	}
 	
-	function dump() {
-		echo $this->dumps();
+	function dump($file_prefix='log') {
+		switch( $this->dump_format ) {
+			case 'plain':
+				echo $this->dumps();
+				break;
+			case 'html':
+				echo '<strong>Log:</strong><br />';
+				echo '<pre>' . $this->dumps() . '</pre>';
+				break;
+			case 'file':
+				$this->save(sprintf('%s_%s.log', $file_prefix, strftime('%d-%m-%Y_%H-%M-%S')));
+		}
 	}
 	
 	function clear() {
@@ -128,7 +154,10 @@ class Logger {
 	}
 	
 	function save($path) {
-		file_put_contents($path, $this->dumps());
+		if( $this->log_directory && !is_dir($this->log_directory) )
+			mkdir($this->log_directory, 0644, true);
+		
+		file_put_contents($this->log_directory . $path, $this->dumps());
 	}
 	
 	function handle_exception(\Exception $e) {
@@ -138,7 +167,7 @@ class Logger {
 		$message = sprintf("Uncaught %s in file %s, line %d: %s\n\n%s", get_class($e),
 			$e->getFile(), $e->getLine(), $e->getMessage(), $e->getTraceAsString());
 		$this->critical($message);
-		$this->dump();
+		$this->dump('error');
 	}
 	
 	function set_as_exception_handler() {
