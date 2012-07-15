@@ -1,8 +1,9 @@
 <?php
 
 require_once 'base.php';
+use WebBasics\Base;
 
-class BaseExtension extends WebBasics\Base {
+class BaseExtension extends Base {
 	function __construct($foo, $bar) {
 		$this->foo = $foo;
 		$this->bar = $bar;
@@ -20,6 +21,11 @@ class BaseTest extends PHPUnit_Framework_TestCase {
 			array('foo' => 'bar')), 'bar baz bar');
 		$this->assertEquals(WebBasics\asprintf('%(bar) baz %(foo)',
 			array('foo' => 'bar', 'bar' => 'foobar')), 'foobar baz bar');
+	}
+	
+	function test_path_with_slash() {
+		$this->assertEquals(Base::path_with_slash('dirname'), 'dirname/');
+		$this->assertEquals(Base::path_with_slash('dirname/'), 'dirname/');
 	}
 }
 

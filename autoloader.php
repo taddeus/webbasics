@@ -150,16 +150,6 @@ class Autoloader extends Base {
 	}
 	
 	/**
-	 * Append a slash ('/') to the given directory name, if it is not already there.
-	 * 
-	 * @param string $directory The directory to append a slash to.
-	 * @return string
-	 */
-	static function path_with_slash($directory) {
-		return $directory[strlen($directory) - 1] == '/' ? $directory : $directory.'/';
-	}
-	
-	/**
 	 * Convert a class name to a file name.
 	 * 
 	 * Uppercase letters are converted to lowercase and prepended

@@ -45,14 +45,6 @@ class AutoloaderTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals($strip->invoke($this->autoloader, 'Foo\Bar'), 'Bar');
 	}
 	
-	function test_path_with_slash() {
-		$this->assertEquals(Autoloader::path_with_slash('dirname'), 'dirname/');
-		$this->assertEquals(Autoloader::path_with_slash('dirname/'), 'dirname/');
-	}
-	
-	/**
-	 * @depends test_path_with_slash
-	 */
 	function test_set_root_directory() {
 		$this->autoloader->set_root_directory('tests');
 		$this->assertEquals($this->autoloader->get_root_directory(), 'tests/');
