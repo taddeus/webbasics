@@ -101,7 +101,10 @@ class Router extends Base {
 	 * Call the handler function corresponding to the specified url.
 	 * 
 	 * If any groups are in the matched regex pattern, a list of matches is
-	 * passed to the handler function.
+	 * passed to the handler function. If the handler function returns FALSE,
+	 * the url has not been 'handled' and the next pattern will be checked for
+	 * a match. Otherwise, the return value of the handler function is
+	 * returned as the result.
 	 * 
 	 * @param string $url An url to match the saved patterns against.
 	 * @return mixed FALSE if no pattern was matched, the return value of the
@@ -111,7 +114,10 @@ class Router extends Base {
 		foreach( $this->routes as $pattern => $handler ) {
 			if( preg_match($pattern, $url, $matches) ) {
 				array_shift($matches);
-				return call_user_func_array($handler, $matches);
+				$result = call_user_func_array($handler, $matches);
+				
+				if( $result !== false )
+					return $result;
 			}
 		}
 		
