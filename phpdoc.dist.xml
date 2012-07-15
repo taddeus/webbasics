@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="UTF-8" ?>
 <phpdoc>
-	<title>BasicWeb documentation</title>
+	<title>WebBasics documentation</title>
 	<parser>
-		<default-package-name>BasicWeb</default-package-name>
+		<default-package-name>WebBasics</default-package-name>
 		<target>build/docs</target>
 	</parser>
 	<transformer>

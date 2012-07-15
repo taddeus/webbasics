@@ -1,7 +1,7 @@
 <?php
 
 require_once 'autoloader.php';
-use BasicWeb\Autoloader;
+use WebBasics\Autoloader;
 
 define('PATH', 'tests/_files/');
 
@@ -31,7 +31,7 @@ class AutoloaderTest extends PHPUnit_Framework_TestCase {
 	 * @depends test_set_root_namespace
 	 */
 	function test_strip_root_namespace() {
-		$strip = new ReflectionMethod('BasicWeb\Autoloader', 'strip_root_namespace');
+		$strip = new ReflectionMethod('WebBasics\Autoloader', 'strip_root_namespace');
 		$strip->setAccessible(true);
 		
 		$this->autoloader->set_root_namespace('Foo');
@@ -85,7 +85,7 @@ class AutoloaderTest extends PHPUnit_Framework_TestCase {
 	
 	/**
 	 * @depends test_load_class_not_found
-	 * @expectedException BasicWeb\FileNotFoundError
+	 * @expectedException WebBasics\FileNotFoundError
 	 * @expectedExceptionMessage File "tests/_files/foobar.php" does not exist.
 	 */
 	function test_load_class_not_found_error() {
@@ -95,7 +95,7 @@ class AutoloaderTest extends PHPUnit_Framework_TestCase {
 	
 	/**
 	 * @depends test_load_class_not_found
-	 * @expectedException BasicWeb\FileNotFoundError
+	 * @expectedException WebBasics\FileNotFoundError
 	 * @expectedExceptionMessage File "tests/_files/foobar.php" does not exist.
 	 */
 	function test_load_class_not_found_noerror_overwrite() {

@@ -7,7 +7,7 @@
  * @date 14-07-2012
  */
 
-namespace BasicWeb;
+namespace WebBasics;
 
 require_once 'node.php';
 
@@ -67,7 +67,7 @@ require_once 'node.php';
  * &lt;/html&gt;
  * </code>
  * 
- * @package BasicWeb
+ * @package WebBasics
  */
 class Template extends Node {
 	/**
@@ -359,7 +359,7 @@ class Template extends Node {
 /**
  * Error, thrown when an error occurs during the parsing of a template file.
  * 
- * @package BasicWeb
+ * @package WebBasics
  */
 class ParseError extends \RuntimeException {
 	/**

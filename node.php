@@ -7,7 +7,7 @@
  * @date 13-07-2012
  */
 
-namespace BasicWeb;
+namespace WebBasics;
 
 require_once 'base.php';
 
@@ -17,7 +17,7 @@ require_once 'base.php';
  * Each tree node has a (non-unique) name, a list of variables, and zero or
  * more children.
  * 
- * @package BasicWeb
+ * @package WebBasics
  */
 class Node extends Base {
 	/**

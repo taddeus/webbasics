@@ -1,7 +1,7 @@
 <?php
 
 require_once 'node.php';
-use \BasicWeb\Node;
+use \WebBasics\Node;
 
 class NodeTest extends PHPUnit_Framework_TestCase {
 	var $autoloader;

@@ -1,7 +1,7 @@
 <?php
 
 require_once 'logger.php';
-use BasicWeb\Logger;
+use WebBasics\Logger;
 
 define('NAME', 'Testlogger');
 define('FORMAT', '%(level): %(message)');

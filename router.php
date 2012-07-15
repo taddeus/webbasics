@@ -8,7 +8,7 @@
  * @date 14-07-2012
  */
 
-namespace BasicWeb;
+namespace WebBasics;
 
 require_once 'base.php';
 
@@ -47,7 +47,7 @@ require_once 'base.php';
  * $response = $router->call_handler('/contact');  // 'This is the contact page.'
  * </code>
  * 
- * @package BasicWeb
+ * @package WebBasics
  */
 class Router extends Base {
 	/**

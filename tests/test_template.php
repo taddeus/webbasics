@@ -1,8 +1,8 @@
 <?php
 
 require_once 'template.php';
-use BasicWeb\Template;
-use BasicWeb\Node;
+use WebBasics\Template;
+use WebBasics\Node;
 
 define('TEMPLATES_DIR', 'tests/_files/templates/');
 
@@ -33,7 +33,7 @@ class TemplateTest extends PHPUnit_Framework_TestCase {
 	}
 	
 	/**
-	 * @expectedException BasicWeb\FileNotFoundError
+	 * @expectedException WebBasics\FileNotFoundError
 	 * @expectedExceptionMessage Directory "non_existing_folder/" does not exist.
 	 */
 	function test_add_root_failure() {
@@ -41,7 +41,7 @@ class TemplateTest extends PHPUnit_Framework_TestCase {
 	}
 	
 	function assert_include_path_equals($expected) {
-		$include_path = new ReflectionProperty('BasicWeb\Template', 'include_path');
+		$include_path = new ReflectionProperty('WebBasics\Template', 'include_path');
 		$include_path->setAccessible(true);
 		$this->assertEquals($expected, $include_path->getValue());
 	}
@@ -146,7 +146,7 @@ class TemplateTest extends PHPUnit_Framework_TestCase {
 	
 	/**
 	 * @depends test_parse_blocks_blocks
-	 * @expectedException BasicWeb\ParseError
+	 * @expectedException WebBasics\ParseError
 	 * @expectedExceptionMessage Parse error in file tests/_files/templates/unexpected_end.tpl, line 5: unexpected {end}
 	 */
 	function test_parse_blocks_unexpected_end() {
@@ -155,7 +155,7 @@ class TemplateTest extends PHPUnit_Framework_TestCase {
 	
 	/**
 	 * @depends test_parse_blocks_blocks
-	 * @expectedException BasicWeb\ParseError
+	 * @expectedException WebBasics\ParseError
 	 * @expectedExceptionMessage Parse error in file tests/_files/templates/missing_end.tpl, line 6: missing {end}
 	 */
 	function test_parse_blocks_missing_end() {
@@ -206,7 +206,7 @@ class TemplateTest extends PHPUnit_Framework_TestCase {
 	}
 	
 	function assert_replaces($expected, $variable) {
-		$rm = new ReflectionMethod('BasicWeb\Template', 'replace_variable');
+		$rm = new ReflectionMethod('WebBasics\Template', 'replace_variable');
 		$rm->setAccessible(true);
 		$this->assertEquals($expected, $rm->invoke(null, $variable, $this->data));
 	}
@@ -255,7 +255,7 @@ class TemplateTest extends PHPUnit_Framework_TestCase {
 	}
 	
 	/*function assert_block_renders($expected_file, $block, $data) {
-		$rm = new ReflectionMethod('BasicWeb\Template', 'render_block');
+		$rm = new ReflectionMethod('WebBasics\Template', 'render_block');
 		$rm->setAccessible(true);
 		$expected_file = "tests/_files/rendered/$expected_file.html";
 		$this->assertStringEqualsFile($expected_file, $rm->invoke(null, $block, $data));

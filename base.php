@@ -1,18 +1,18 @@
 <?php
 /**
- * Commonly used classes used in the BasicWeb package.
+ * Commonly used classes used in the WebBasics package.
  * 
  * @author Taddeus Kroes
  * @version 1.0
  * @date 13-07-2012
  */
 
-namespace BasicWeb;
+namespace WebBasics;
 
 require_once 'logger.php';
 
 /**
- * Base class for instantiable classes in the BasicWeb package.
+ * Base class for instantiable classes in the WebBasics package.
  * 
  * The base class defines a static 'create' method that acts as a chainable
  * shortcut for the class constructor:
@@ -37,7 +37,7 @@ require_once 'logger.php';
  * $foo->method();
  * </code>
  * 
- * @package BasicWeb
+ * @package WebBasics
  */
 abstract class Base {
 	/**
@@ -60,7 +60,7 @@ abstract class Base {
 /**
  * Exception, thrown when a required file does not exist.
  * 
- * @package BasicWeb
+ * @package WebBasics
  */
 class FileNotFoundError extends \RuntimeException {
 	/**
@@ -85,7 +85,7 @@ class FileNotFoundError extends \RuntimeException {
  * 
  * @param string $format The string to format.
  * @param array $params An associative array with parameters that are used in $format.
- * @package BasicWeb
+ * @package WebBasics
  */
 function asprintf($format, array $params) {
 	return preg_replace_callback(

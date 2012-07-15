@@ -7,14 +7,14 @@
  * @date 13-07-2012
  */
 
-namespace BasicWeb;
+namespace WebBasics;
 
 /**
  * Logger class. 
  * 
  * A Logger object provides five functions to process log messages.
  * 
- * @package BasicWeb
+ * @package WebBasics
  */
 class Logger {
 	const CRITICAL = 0;

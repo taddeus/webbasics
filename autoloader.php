@@ -7,7 +7,7 @@
  * @date 13-07-2012
  */
 
-namespace BasicWeb;
+namespace WebBasics;
 
 require_once 'base.php';
 
@@ -51,7 +51,7 @@ require_once 'base.php';
  * $baz = new Baz();  // Throws a FileNotFoundError, since 'other_classes/baz.php' does not exist
  * </code>
  * 
- * @package BasicWeb
+ * @package WebBasics
  */
 class Autoloader extends Base {
 	/**
