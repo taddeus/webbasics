@@ -69,9 +69,10 @@ class FileNotFoundError extends \RuntimeException {
 	 * Sets an error message of the form 'File "path/to/file.php" does not exist.'.
 	 * 
 	 * @param string $path Path to the file that does not exist.
+	 * @param bool $is_dir Whether the path points to a directory (defaults to false).
 	 */
-	function __construct($path) {
-		$this->message = sprintf('File "%s" does not exist.', $path);
+	function __construct($path, $is_dir=false) {
+		$this->message = sprintf('%s "%s" does not exist.', $is_dir ? 'Directory' : 'File', $path);
 	}
 }
 
