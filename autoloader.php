@@ -81,11 +81,13 @@ class Autoloader extends Base {
 	/**
 	 * Create a new Autoloader instance.
 	 * 
-	 * @param string $directory Root directory of the autoloader.
+	 * @param string $root_directory Root directory of the autoloader.
+	 * @param string $root_namespace Root namespace of classes loaded by the autoloader.
 	 * @param bool $throw Whether to throw an exception when a class file does not exist.
 	 */
-	function __construct($directory, $throw=false) {
-		$this->set_root_directory($directory);
+	function __construct($root_directory, $root_namespace='\\', $throw=false) {
+		$this->set_root_directory($root_directory);
+		$this->set_root_namespace($root_namespace);
 		$this->set_throw_errors($throw);
 	}
 	
@@ -128,7 +130,7 @@ class Autoloader extends Base {
 	/**
 	 * Set the root namespace that loaded classes are expected to be in.
 	 * 
-	 * @param string $directory The new root namespace.
+	 * @param string $namespace The new root namespace.
 	 */
 	function set_root_namespace($namespace) {
 		// Assert that the namespace ends with a backslash

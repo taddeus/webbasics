@@ -10,7 +10,6 @@ class AutoloaderTest extends PHPUnit_Framework_TestCase {
 		$this->autoloader = new Autoloader(PATH);
 	}
 	
-	
 	function test_set_root_namespace() {
 		$this->assertAttributeEquals('\\', 'root_namespace', $this->autoloader);
 		$this->autoloader->set_root_namespace('Foo');
@@ -25,6 +24,14 @@ class AutoloaderTest extends PHPUnit_Framework_TestCase {
 	function test_get_root_namespace() {
 		$this->autoloader->set_root_namespace('Foo');
 		$this->assertEquals($this->autoloader->get_root_namespace(), 'Foo\\');
+	}
+	
+	/**
+	 * @depends test_set_root_namespace
+	 */
+	function test_construct_root_namespace() {
+		$autoloader = new Autoloader(PATH, 'Foo');
+		$this->assertAttributeEquals('Foo\\', 'root_namespace', $autoloader);
 	}
 	
 	/**
