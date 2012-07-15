@@ -5,6 +5,7 @@ use WebBasics\Logger;
 
 define('NAME', 'Testlogger');
 define('FORMAT', '%(level): %(message)');
+define('LOGFILE', 'build/temp.log');
 
 class LoggerTest extends PHPUnit_Extensions_OutputTestCase {
 	function setUp() {
@@ -107,6 +108,16 @@ class LoggerTest extends PHPUnit_Extensions_OutputTestCase {
 	function test_handle_exception() {
 		$this->logger->handle_exception(new Exception('test message'));
 		$this->assertNotEquals($this->logger->dumps(), '');
+	}
+	
+	function test_save() {
+		$this->logger->warning('test message');
+		$this->logger->save(LOGFILE);
+		$this->assertStringEqualsFile(LOGFILE, 'WARNING: test message');
+		$this->logger->warning('another test message');
+		$this->logger->save(LOGFILE);
+		$this->assertStringEqualsFile(LOGFILE, "WARNING: test message\nWARNING: another test message");
+		file_exists(LOGFILE) && unlink(LOGFILE);
 	}
 }
 
