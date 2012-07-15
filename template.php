@@ -144,7 +144,7 @@ class Template extends Node {
 	/**
 	 * Get the path to the template file (including one of the include paths).
 	 * 
-	 * @return string the path to the template file.
+	 * @return string The path to the template file.
 	 */
 	function get_path() {
 		return $this->path;
@@ -164,7 +164,6 @@ class Template extends Node {
 		while( preg_match('/(.*?)\{([^}]+)}(.*)/s', $after, $matches) ) {
 			list($before, $brackets_content, $after) = array_slice($matches, 1);
 			$line_count += substr_count($before, "\n");
-			//var_dump(array_slice($matches, 1));
 			
 			// Everything before the new block belongs to its parent
 			$current->add('html')->set('content', $before);

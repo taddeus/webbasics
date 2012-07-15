@@ -12,7 +12,7 @@ Unit tests
 ----------
 Unit tests are in the 'tests/' directory. PHPUnit is used to run tests. The
 PHP extension Xdebug needs to be installed in order to generate a code
-coverage report. To run unit tests, simply run 'phpunit' in the root
+coverage report. To run all unit tests, simply run 'phpunit' in the root
 directory.
 
 -------------
