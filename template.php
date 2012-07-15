@@ -153,6 +153,8 @@ class Template extends Node {
 	/**
 	 * Parse the content of the template file into a tree structure of blocks
 	 * and variables.
+	 * 
+	 * @throws ParseError If an {end} tag is not used properly.
 	 */
 	private function parse_blocks() {
 		$current = $root = new Node('block');

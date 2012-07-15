@@ -12,7 +12,8 @@ namespace WebBasics;
 require_once 'base.php';
 
 /**
- * Object that to automatically load classes within a root directory.
+ * Object to automatically load classes within a root directory.
+ * 
  * Simple example: all classes are located in the 'classes' directory.
  * <code>
  * $loader = new Autoloader('classes');
