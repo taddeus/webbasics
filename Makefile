@@ -7,9 +7,9 @@ docs:
 	phpdoc
 
 upload: docs
-	scp -r build/docs mv:tk.nl/docs/webbasics
+	rsync -r --delete --force build/docs mv:tk.nl/docs/webbasics
 
 clean:
 	rm -rf build
 
-.PHONY: test docs clean upload
+.PHONY: test docs upload clean
