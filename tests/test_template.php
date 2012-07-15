@@ -95,17 +95,9 @@ class TemplateTest extends PHPUnit_Framework_TestCase {
 		return $rp->getValue($object);
 	}
 	
-	function test_parse_blocks_simple() {
-		$root_block = $this->get_property($this->tpl, 'root_block');
-		$this->assert_is_block_node($root_block, null, 1);
-		
-		list($child) = $root_block->get_children();
-		$this->assert_is_html_node($child, 'test');
-	}
-	
 	function assert_is_html_node($node, $content) {
 		$this->assertEquals('html', $node->get_name());
-		$this->assertEquals($content, $node->get('content'));
+		$this->assertEquals($content, str_replace("\r\n", "\n", $node->get('content')));
 		$this->assertEquals(array(), $node->get_children());
 	}
 	
@@ -120,6 +112,14 @@ class TemplateTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals('variable', $node->get_name());
 		$this->assertEquals($brackets_content, $node->get('content'));
 		$this->assertEquals(array(), $node->get_children());
+	}
+	
+	function test_parse_blocks_simple() {
+		$root_block = $this->get_property($this->tpl, 'root_block');
+		$this->assert_is_block_node($root_block, null, 1);
+		
+		list($child) = $root_block->get_children();
+		$this->assert_is_html_node($child, 'test');
 	}
 	
 	/**
