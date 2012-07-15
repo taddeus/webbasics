@@ -5,6 +5,7 @@ use WebBasics\Logger;
 
 define('NAME', 'Testlogger');
 define('FORMAT', '%(level): %(message)');
+define('LOGDIR', 'build/logs/');
 define('LOGFILE', 'build/temp.log');
 
 class LoggerTest extends PHPUnit_Extensions_OutputTestCase {
@@ -12,10 +13,36 @@ class LoggerTest extends PHPUnit_Extensions_OutputTestCase {
 		$this->logger = new Logger();
 		$this->logger->set_property('name', NAME);
 		$this->logger->set_format(FORMAT);
+		
+		is_dir('build') || mkdir('build');
 	}
 	
 	function assert_dumps($expected) {
 		$this->assertEquals($this->logger->dumps(), $expected);
+	}
+	
+	function test_set_directory() {
+		$this->logger->set_directory('logs');
+		$this->assertAttributeEquals('logs/', 'log_directory', $this->logger);
+		$this->logger->set_directory('logs/');
+		$this->assertAttributeEquals('logs/', 'log_directory', $this->logger);
+	}
+	
+	function test_set_format() {
+		$this->logger->set_format('foo');
+		$this->assertAttributeEquals('foo', 'format', $this->logger);
+	}
+	
+	function test_set_dump_format_success() {
+		$this->logger->set_dump_format('html');
+		$this->assertAttributeEquals('html', 'dump_format', $this->logger);
+	}
+	
+	/**
+	 * @expectedException InvalidArgumentException
+	 */
+	function test_set_dump_format_failure() {
+		$this->logger->set_dump_format('foo');
 	}
 	
 	function test_get_format() {
@@ -99,15 +126,20 @@ class LoggerTest extends PHPUnit_Extensions_OutputTestCase {
 	/**
 	 * @depends test_process_level
 	 */
-	function test_dump() {
+	function test_dump_plain() {
 		$this->logger->warning('test message');
 		$this->expectOutputString('WARNING: test message');
 		$this->logger->dump();
 	}
 	
-	function test_handle_exception() {
-		$this->logger->handle_exception(new Exception('test message'));
-		$this->assertNotEquals($this->logger->dumps(), '');
+	/**
+	 * @depends test_process_level
+	 */
+	function test_dump_html() {
+		$this->logger->warning('test message');
+		$this->logger->set_dump_format('html');
+		$this->expectOutputString('<strong>Log:</strong><br /><pre>WARNING: test message</pre>');
+		$this->logger->dump();
 	}
 	
 	function test_save() {
@@ -117,7 +149,47 @@ class LoggerTest extends PHPUnit_Extensions_OutputTestCase {
 		$this->logger->warning('another test message');
 		$this->logger->save(LOGFILE);
 		$this->assertStringEqualsFile(LOGFILE, "WARNING: test message\nWARNING: another test message");
-		file_exists(LOGFILE) && unlink(LOGFILE);
+		unlink(LOGFILE);
+	}
+	
+	function find_logfile() {
+		$files = scandir(LOGDIR);
+		return $files[2];
+	}
+	
+	/**
+	 * @depends test_save
+	 */
+	function test_dump_file_regular() {
+		$this->logger->set_directory(LOGDIR);
+		$this->logger->set_dump_format('file');
+		
+		$this->logger->warning('test message');
+		$this->logger->dump();
+		$filename = $this->find_logfile();
+		$this->assertStringEqualsFile(LOGDIR . $filename, 'WARNING: test message');
+		unlink(LOGDIR . $filename);
+		$this->assertRegExp('/^log_\d{2}-\d{2}-\d{4}_\d{2}-\d{2}-\d{2}.log$/', $filename);
+	}
+	
+	/**
+	 * @depends test_dump_file_regular
+	 */
+	function test_dump_file_prefix() {
+		$this->logger->set_directory(LOGDIR);
+		$this->logger->set_dump_format('file');
+		
+		$this->logger->warning('test message');
+		$this->logger->dump('error');
+		$filename = $this->find_logfile();
+		$this->assertStringEqualsFile(LOGDIR . $filename, 'WARNING: test message');
+		unlink(LOGDIR . $filename);
+		$this->assertRegExp('/^error_\d{2}-\d{2}-\d{4}_\d{2}-\d{2}-\d{2}.log$/', $filename);
+	}
+	
+	function test_handle_exception() {
+		$this->logger->handle_exception(new Exception('test message'));
+		$this->assertNotEquals($this->logger->dumps(), '');
 	}
 }
 

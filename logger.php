@@ -42,7 +42,7 @@ class Logger extends Base {
 	
 	function set_dump_format($format) {
 		if( !in_array($format, self::$allowed_dump_formats) )
-			throw new InvalidArgumentException(sprintf('', $format));
+			throw new \InvalidArgumentException(sprintf('', $format));
 		
 		$this->dump_format = $format;
 	}
