@@ -251,7 +251,8 @@ class Template extends Node {
 	 * name to get of the object, or the associative index to the array.
 	 * *func1*, *func2*, etc. are helper functions that are executed in the
 	 * same order as listed. The retuen value of each helper function replaces
-	 * the previous variable value.
+	 * the previous variable value. *var_name* Can also be the name of a
+	 * defined constant.
 	 * 
 	 * ------------
 	 * If-statement
@@ -300,8 +301,12 @@ class Template extends Node {
 		}
 		
 		// Default: Simple variable name
-		if( !isset($value) )
+		if( !isset($value) ) {
 			$value = $data->get($name);
+			
+			if( $value === null && defined($name) )
+				$value = constant($name);
+		}
 		
 		// Don't continue if the variable name is not found in the data block
 		if( $value !== null ) {

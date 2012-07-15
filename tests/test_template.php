@@ -225,6 +225,15 @@ class TemplateTest extends PHPUnit_Framework_TestCase {
 	}
 	
 	/**
+	 * @depends test_replace_variable_helper_functions
+	 */
+	function test_replace_variable_constant() {
+		define('FOOCONST', 'foobar');
+		$this->assert_replaces('foobar', 'FOOCONST');
+		$this->assert_replaces('FOOBAR', 'FOOCONST:strtoupper');
+	}
+	
+	/**
 	 * @expectedException UnexpectedValueException
 	 * @expectedExceptionMessage Helper function "idonotexist" is not callable.
 	 */
