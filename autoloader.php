@@ -3,7 +3,6 @@
  * A tool for autoloading PHP classes within a root directory and namespace.
  * 
  * @author Taddeus Kroes
- * @version 1.0
  * @date 13-07-2012
  */
 

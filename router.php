@@ -4,7 +4,6 @@
  * function (the 'route' to the corresponding output).
  * 
  * @author Taddeus Kroes
- * @version 1.0
  * @date 14-07-2012
  */
 

@@ -3,7 +3,6 @@
  * Tree data structure, used for rendering purposes.
  * 
  * @author Taddeus Kroes
- * @version 1.0
  * @date 13-07-2012
  */
 

@@ -1,9 +1,8 @@
 <?php
 /**
- * Collection functions, mainly used to manipulate lists of PHPActiveRecord models.
+ * Collection functions, mainly used to manipulate lists of PHP ActiveRecord models.
  * 
  * @author Taddeus Kroes
- * @version 1.0
  * @date 13-07-2012
  */
 
