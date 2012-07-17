@@ -29,7 +29,7 @@ require_once 'base.php';
  * </code>
  * 
  * Namespaces are assumed to indicate subdirectories:
- * <code=php>
+ * <code>
  * Autoloader::create('classes')->register();
  * $bar = new Foo\Bar();      // Includes 'classes/foo/bar.php'
  * $baz = new Foo\Bar\Baz();  // Includes 'classes/foo/bar/baz.php'
