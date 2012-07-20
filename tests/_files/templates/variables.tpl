@@ -1,5 +1,5 @@
 foo
-{foobar}
+{$foobar}
 bar
-{foobaz:strtolower}
+{strtolower($foobaz)}
 baz

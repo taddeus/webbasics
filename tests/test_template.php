@@ -5,6 +5,20 @@ use WebBasics\Template;
 use WebBasics\Node;
 
 define('TEMPLATES_DIR', 'tests/_files/templates/');
+define('FOOBAR', 'foobar_const');
+
+class DataObject {
+	var $foo = 'bar';
+	var $bar = 'baz';
+	
+	function baz() {
+		return 'foobar';
+	}
+	
+	static function foobar($param) {
+		return ucfirst($param);
+	}
+}
 
 class TemplateTest extends PHPUnit_Framework_TestCase {
 	/**
@@ -26,7 +40,7 @@ class TemplateTest extends PHPUnit_Framework_TestCase {
 			'true' => true,
 			'false' => false,
 			'array' => array('foo' => 'bar', 'bar' => 'baz'),
-			'object' => $object,
+			'object' => new DataObject,
 			'foobar' => 'my_foobar_variable',
 			'foobaz' => 'MY_FOOBAZ_VARIABLE',
 		));
@@ -108,8 +122,8 @@ class TemplateTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals($child_count, count($node->get_children()));
 	}
 	
-	function assert_is_variable_node($node, $brackets_content) {
-		$this->assertEquals('variable', $node->get_name());
+	function assert_is_exp_node($node, $brackets_content) {
+		$this->assertEquals('expression', $node->get_name());
 		$this->assertEquals($brackets_content, $node->get('content'));
 		$this->assertEquals(array(), $node->get_children());
 	}
@@ -172,9 +186,9 @@ class TemplateTest extends PHPUnit_Framework_TestCase {
 		
 		list($foo, $foobar, $bar, $foobaz, $baz) = $root_block->get_children();
 		$this->assert_is_html_node($foo, "foo\n");
-		$this->assert_is_variable_node($foobar, 'foobar');
+		$this->assert_is_exp_node($foobar, '$foobar');
 		$this->assert_is_html_node($bar, "\nbar\n");
-		$this->assert_is_variable_node($foobaz, 'foobaz:strtolower');
+		$this->assert_is_exp_node($foobaz, 'strtolower($foobaz)');
 		$this->assert_is_html_node($baz, "\nbaz");
 	}
 	
@@ -196,79 +210,143 @@ class TemplateTest extends PHPUnit_Framework_TestCase {
 		$this->assert_is_html_node($foofoo, "\nfoofoo\n\t");
 		$this->assert_is_block_node($bar, 'bar', 3);
 		$this->assert_is_html_node($first_space, "\n");
-		$this->assert_is_variable_node($foobaz, 'foobaz:strtolower');
+		$this->assert_is_exp_node($foobaz, 'strtolower($foobaz)');
 		$this->assert_is_html_node($second_space, "\n");
 		
 		list($space_before, $foobar, $space_after) = $bar->get_children();
 		$this->assert_is_html_node($space_before, "\n\t");
-		$this->assert_is_variable_node($foobar, 'foobar');
+		$this->assert_is_exp_node($foobar, '$foobar');
 		$this->assert_is_html_node($space_after, "\n\t");
 	}
 	
-	function assert_replaces($expected, $variable) {
-		$rm = new ReflectionMethod('WebBasics\Template', 'replace_variable');
-		$rm->setAccessible(true);
-		$this->assertEquals($expected, $rm->invoke(null, $variable, $this->data));
+	function evaluate_expression() {
+		$args = func_get_args();
+		$eval = new ReflectionMethod('WebBasics\Template', 'evaluate_expression');
+		$eval->setAccessible(true);
+		return $eval->invokeArgs(null, $args);
 	}
 	
-	function test_replace_variable_simple() {
-		$this->assert_replaces('bar', 'foo');
+	function assert_evaluates($expected, $expression) {
+		$this->assertEquals($expected, $this->evaluate_expression($expression, $this->data));
+	}
+	
+	/** 
+	 * @expectedException \UnexpectedValueException
+	 */
+	function test_evaluate_variable_attribute_null() {
+		$this->evaluate_expression('$foobarbaz.foo', $this->data);
+	}
+	
+	/** 
+	 * @expectedException \UnexpectedValueException
+	 */
+	function test_evaluate_variable_attribute_no_such_attribute() {
+		$this->evaluate_expression('$object.foobar', $this->data);
+	}
+	
+	/** 
+	 * @expectedException \UnexpectedValueException
+	 */
+	function test_evaluate_variable_attribute_no_array_or_object() {
+		$this->evaluate_expression('$foo.bar', $this->data);
+	}
+	
+	/** 
+	 * @expectedException \UnexpectedValueException
+	 */
+	function test_evaluate_variable_method_null() {
+		$this->evaluate_expression('$foobarbaz.foo()', $this->data);
+	}
+	
+	/** 
+	 * @expectedException \BadMethodCallException
+	 */
+	function test_evaluate_variable_method_no_such_method() {
+		$this->evaluate_expression('$object.foo()', $this->data);
+	}
+	
+	/** 
+	 * @expectedException \BadMethodCallException
+	 */
+	function test_evaluate_variable_method_no_object() {
+		$this->evaluate_expression('$foo.bar()', $this->data);
+	}
+	
+	function test_evaluate_variable_success() {
+		$this->assert_evaluates('bar', '$array.foo');
+		$this->assert_evaluates('bar', '$foo');
+		$this->assert_evaluates('baz', '$bar');
+		$this->assert_evaluates('bar', '$object.foo');
+		$this->assert_evaluates('baz', '$object.bar');
+		$this->assert_evaluates('foobar', '$object.baz()');
+	}
+	
+	function test_evaluate_constant() {
+		$this->assert_evaluates('foobar_const', 'FOOBAR');
+		$this->assert_evaluates('{NON_DEFINED_CONST}', 'NON_DEFINED_CONST');
+	}
+	
+	function test_evaluate_no_expression() {
+		$this->assert_evaluates('{foo}', 'foo');
+	}
+	
+	function test_evaluate_condition_if() {
+		$this->assert_evaluates('bar', '$true?bar');
+		$this->assert_evaluates('', '$false?bar');
+	}
+	
+	function test_evaluate_condition_if_else() {
+		$this->assert_evaluates('bar', '$true?bar:baz');
+		$this->assert_evaluates('baz', '$false?bar:baz');
 	}
 	
 	/**
-	 * @depends test_replace_variable_simple
+	 * @depends test_evaluate_condition_if
+	 * @depends test_evaluate_condition_if_else
 	 */
-	function test_replace_variable_helper_functions() {
-		$this->assert_replaces('Bar', 'foo:ucfirst');
-		$this->assert_replaces('bar', 'FOO:strtolower');
-		$this->assert_replaces('Bar', 'FOO:strtolower:ucfirst');
+	function test_evaluate_condition_spaces() {
+		$this->assert_evaluates(' bar ', '$true? bar : baz');
+		$this->assert_evaluates(' baz', '$false? bar : baz');
+		
+		$this->assert_evaluates(' bar ', '$true ? bar : baz');
+		$this->assert_evaluates(' baz', '$false ? bar : baz');
+		
+		$this->assert_evaluates(' Foo bar ', '$true ? Foo bar : Baz foo');
+		$this->assert_evaluates(' Baz foo', '$false ? Foo bar : Baz foo');
+	}
+	
+	/** 
+	 * @expectedException \BadFunctionCallException
+	 */
+	function test_evaluate_function_error() {
+		$this->evaluate_expression('undefined_function($foo)', $this->data);
+	}
+	
+	function test_evaluate_function_success() {
+		$this->assert_evaluates('Bar', 'ucfirst($foo)');
+		$this->assert_evaluates('Bar', 'DataObject::foobar($foo)');
 	}
 	
 	/**
-	 * @depends test_replace_variable_helper_functions
+	 * @depends test_evaluate_function_success
 	 */
-	function test_replace_variable_constant() {
-		define('FOOCONST', 'foobar');
-		$this->assert_replaces('foobar', 'FOOCONST');
-		$this->assert_replaces('FOOBAR', 'FOOCONST:strtoupper');
+	function test_evaluate_function_nested() {
+		$this->assert_evaluates('Bar', 'ucfirst(strtolower($FOO))');
 	}
 	
 	/**
-	 * @expectedException UnexpectedValueException
-	 * @expectedExceptionMessage Helper function "idonotexist" is not callable.
+	 * @depends test_evaluate_variable_success
+	 * @depends test_evaluate_no_expression
+	 * @depends test_evaluate_condition_spaces
+	 * @depends test_evaluate_function_success
 	 */
-	function test_replace_variable_non_callable_helper_function() {
-		$this->assert_replaces(null, 'foo:idonotexist');
+	function test_evaluate_expression_combined() {
+		$this->assert_evaluates('Bar', '$true?ucfirst($foo)');
+		$this->assert_evaluates('', '$false?ucfirst($foo)');
+		$this->assert_evaluates('Bar', '$true?ucfirst($foo):baz');
+		$this->assert_evaluates('baz', '$false?ucfirst($foo):baz');
+		$this->assert_evaluates('Baz', 'ucfirst($array.bar)');
 	}
-	
-	function test_replace_variable_not_found() {
-		$this->assert_replaces('{idonotexist}', 'idonotexist');
-	}
-	
-	function test_replace_variable_associative_array() {
-		$this->assert_replaces('bar', 'array.foo');
-		$this->assert_replaces('baz', 'array.bar');
-	}
-	
-	function test_replace_variable_object_property() {
-		$this->assert_replaces('bar', 'object.foo');
-		$this->assert_replaces('baz', 'object.bar');
-	}
-	
-	function test_replace_variable_if_statement() {
-		$this->assert_replaces('bar', 'if:true:foo');
-		$this->assert_replaces('', 'if:false:foo');
-		$this->assert_replaces('bar', 'if:true:foo:else:bar');
-		$this->assert_replaces('baz', 'if:false:foo:else:bar');
-		$this->assert_replaces('Bar', 'if:false:foo:else:FOO:strtolower:ucfirst');
-	}
-	
-	/*function assert_block_renders($expected_file, $block, $data) {
-		$rm = new ReflectionMethod('WebBasics\Template', 'render_block');
-		$rm->setAccessible(true);
-		$expected_file = "tests/_files/rendered/$expected_file.html";
-		$this->assertStringEqualsFile($expected_file, $rm->invoke(null, $block, $data));
-	}*/
 	
 	function assert_renders($expected_file, $tpl) {
 		$expected_file = "tests/_files/rendered/$expected_file.html";
@@ -280,7 +358,7 @@ class TemplateTest extends PHPUnit_Framework_TestCase {
 	}
 	
 	/**
-	 * @depends test_replace_variable_helper_functions
+	 * @depends test_evaluate_expression_combined
 	 */
 	function test_render_variable() {
 		$tpl = new Template('variables');

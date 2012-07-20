@@ -2,8 +2,8 @@ bar
 {block:foo}
 foofoo
 	{block:bar}
-	{foobar}
+	{$foobar}
 	{end}
-{foobaz:strtolower}
+{strtolower($foobaz)}
 {end}
 baz

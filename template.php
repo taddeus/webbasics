@@ -22,14 +22,14 @@ require_once 'node.php';
  * <code>
  * &lt;html&gt;
  *     &lt;head&gt;
- *         &lt;title&gt;{page_title}&lt;/title&gt;
+ *         &lt;title&gt;{$page_title}&lt;/title&gt;
  *     &lt;/head&gt;
  *     &lt;body&gt;
- *         &lt;h1&gt;{page_title}&lt;/h1&gt;
- *         &lt;div id="content"&gt;{page_content}&lt;/div&gt;
+ *         &lt;h1&gt;{$page_title}&lt;/h1&gt;
+ *         &lt;div id="content"&gt;{$page_content}&lt;/div&gt;
  *         &lt;div id="ads"&gt;
  *             {block:ad}
- *             &lt;div class="ad"&gt;{ad_content}&lt;/div&gt;
+ *             &lt;div class="ad"&gt;{$ad_content}&lt;/div&gt;
  *             {end}
  *         &lt;/div&gt;
  *     &lt;/body&gt;
@@ -64,6 +64,27 @@ require_once 'node.php';
  *         &lt;/div&gt;
  *     &lt;/body&gt;
  * &lt;/html&gt;
+ * </code>
+ * 
+ * The variables of the form *{$variable}* that are used in the template
+ * above, are examples of expressions. An expression is always enclosed in
+ * curly brackets: *{expression}*. The grammar of all expressions that are
+ * currently supported can be described as follows:
+ * <code>
+ * &lt;expression&gt; : {&lt;nested_exp&gt;}
+ *              | {&lt;nested_exp&gt;?&lt;nested_exp&gt;:&lt;nested_exp&gt;}  # Conditional statement
+ * &lt;nested_exp&gt; : &lt;variable&gt;
+ *              | &lt;function&gt;(&lt;nested_exp&gt;)  # Static function call
+ *              | &lt;constant&gt;
+ *              | &lt;html&gt;
+ * &lt;variable&gt; : $&lt;name&gt;             # Regular variable
+ *            | $&lt;name&gt;.&lt;name&gt;      # Object attribute or associative array value
+ *            | $&lt;name&gt;.&lt;name&gt;()    # Method call (no arguments allowed)
+ * &lt;function&gt; : &lt;name&gt;          # Global function
+ *            | &lt;name&gt;::&lt;name&gt;  # Static class method
+ * &lt;constant&gt; : An all-caps PHP constant: [A-Z0-9_]+
+ * &lt;html&gt; : A string without parentheses, curly brackets or semicolons: [^(){}:]*
+ * &lt;name&gt; : A non-empty variable/method name consisting of [a-zA-Z0-9-_]+
  * </code>
  * 
  * @package WebBasics
@@ -180,7 +201,7 @@ class Template extends Node {
 				$current = $current->add('block')->set('name', $block_name);
 			} else {
 				// Variable or something else
-				$current->add('variable')->set('content', $brackets_content);
+				$current->add('expression')->set('content', $brackets_content);
 			}
 		}
 		
@@ -211,7 +232,7 @@ class Template extends Node {
 	 * @param Node $block The block to render.
 	 * @param Node $data The data block to search in for the variable values.
 	 * @return string The rendered block.
-	 * @uses replace_variable()
+	 * @uses evaluate_expression()
 	 */
 	private static function render_block(Node $block, Node $data) {
 		$html = '';
@@ -228,8 +249,8 @@ class Template extends Node {
 						$html .= self::render_block($child, $child_data);
 					
 					break;
-				case 'variable':
-					$html .= self::replace_variable($child->get('content'), $data);
+				case 'expression':
+					$html .= self::evaluate_expression($child->get('content'), $data);
 			}
 		}
 		
@@ -237,93 +258,176 @@ class Template extends Node {
 	}
 	
 	/**
-	 * Replace a variable name if it exists within a given data scope.
+	 * Evaluate a <variable> expression.
 	 * 
-	 * Applies any of the following macro's:
+	 * This function is a helper for {@link evaluate_expression()}.
 	 * 
-	 * --------
-	 * Variable
-	 * --------
-	 * <code>{var_name[:func1:func2:...]}</code>
-	 * *var_name* can be of the form *foo.bar*. In this case, *foo* is the
-	 * name of an object or associative array variable. *bar* is a property
-	 * name to get of the object, or the associative index to the array.
-	 * *func1*, *func2*, etc. are helper functions that are executed in the
-	 * same order as listed. The retuen value of each helper function replaces
-	 * the previous variable value. *var_name* Can also be the name of a
-	 * defined constant.
-	 * 
-	 * ------------
-	 * If-statement
-	 * ------------
-	 * <code>{if:condition:success_variable[:else:failure_variable]}</code>
-	 * *condition* is evaluated to a boolean. If it evaluates to TRUE, the
-	 * value of *success_variable* is used. Otherwise, the value of
-	 * *failure_variable* is used (defaults to an empty string if no
-	 * else-statement is specified).
-	 * 
-	 * @param string $variable The variable to replace.
-	 * @param Node $data The data block to search in for a value.
-	 * @return string The variable's value if it exists, the original string
-	 *                with curly brackets otherwise.
-	 * @throws \UnexpectedValueException If a helper function is not callable.
+	 * @param array $matches Regex matches for variable pattern.
+	 * @return string The evaluation of the variable.
+	 * @param Node $data A data tree containing variable values to use.
+	 * @throws \BadMethodCallException If an error occured while calling a variable method.
+	 * @throws \OutOfBoundsException If an unexisting array key is requested.
+	 * @throws \UnexpectedValueException In some other error situations.
 	 */
-	private static function replace_variable($variable, Node $data) {
-		// If-(else-)statement
-		if( preg_match('/^if:([^:]*):(.*?)(?::else:(.*))?$/', $variable, $matches) ) {
-			$condition = $data->get($matches[1]);
-			$if = $data->get($matches[2]);
-			
-			if( $condition )
-				return $if;
-			
-			return count($matches) > 3 ? self::replace_variable($matches[3], $data) : '';
-		}
+	private static function evaluate_variable(array $matches, Node $data) {
+		$variable = $matches[1];
+		$value = $data->get($variable);
 		
-		// Default: variable with optional helper functions
-		$parts = explode(':', $variable);
-		$name = $parts[0];
-		$helper_functions = array_slice($parts, 1);
-		
-		if( strpos($name, '.') !== false ) {
-			// Variable of the form 'foo.bar'
-			list($variable_name, $property) = explode('.', $name, 2);
-			$object = $data->get($variable_name);
+		if( count($matches) == 3 ) {
+			// $<name>.<name>
+			$attribute = $matches[2];
 			
-			if( is_object($object) && property_exists($object, $property) ) {
-				// Object property
-				$value = $object->$property;
-			} elseif( is_array($object) && isset($object[$property]) ) {
-				// Associative array index
-				$value = $object[$property];
+			if( $value === null ) {
+				throw new \UnexpectedValueException(
+					sprintf('Cannot get attribute "%s.%s": value is NULL', $variable, $attribute)
+				);
+			}
+			
+			$attr_error = function($error, $class='\UnexpectedValueException') use ($attribute, $variable) {
+				throw new $class(
+					sprintf('Cannot get attribute "%s.%s": %s', $variable, $attribute, $error)
+				);
+			};
+			
+			if( is_array($value) ) {
+				isset($value[$attribute]) || $attr_error('no such key', '\OutOfBoundsException');
+				$value = $value[$attribute];
+			} elseif( is_object($value) ) {
+				isset($value->$attribute) || $attr_error('no such attribute');
+				$value = $value->$attribute;
+			} else {
+				$attr_error('variable is no array or object');
+			}
+		} elseif( count($matches) == 4 ) {
+			// $<name>.<name>()
+			$method = $matches[2];
+			
+			if( $value === null ) {
+				throw new \UnexpectedValueException(
+					sprintf('Cannot call method "%s.%s()": object is NULL', $variable, $method)
+				);
+			}
+			
+			$method_error = function($error) use ($method, $variable) {
+				throw new \BadMethodCallException(
+					sprintf('Cannot call method "%s.%s()": %s', $variable, $method, $error)
+				);
+			};
+			
+			if( is_object($value) ) {
+				method_exists($value, $method) || $method_error('no such method');
+				$value = $value->$method();
+			} else {
+				$method_error('variable is no object');
 			}
 		}
 		
-		// Default: Simple variable name
-		if( !isset($value) ) {
-			$value = $data->get($name);
-			
-			if( $value === null && defined($name) )
-				$value = constant($name);
+		return $value;
+	}
+	
+	/**
+	 * Evaluate a conditional expression.
+	 * 
+	 * This function is a helper for {@link evaluate_expression()}.
+	 * 
+	 * @param array $matches Regex matches for conditional pattern.
+	 * @param Node $data A data tree containing variable values to use for
+	 *                   variable expressions.
+	 * @return string The evaluation of the condition.
+	 */
+	private static function evaluate_condition(array $matches, Node $data) {
+		if( self::evaluate_expression($matches[1], $data, false) ) {
+			// Condition evaluates to true: return 'if' evaluation
+			return self::evaluate_expression($matches[2], $data, false);
+		} elseif( count($matches) == 4 ) {
+			// <nested_exp>?<nested_exp>:<nested_exp>
+			return self::evaluate_expression($matches[3], $data, false);
 		}
 		
-		// Don't continue if the variable name is not found in the data block
-		if( $value !== null ) {
-			// Apply helper functions to the variable's value iteratively
-			foreach( $helper_functions as $func ) {
-				if( !is_callable($func) ) {
-					throw new \UnexpectedValueException(
-						sprintf('Helper function "%s" is not callable.', $func)
-					);
-				}
-				
-				$value = $func($value);
+		// No 'else' specified: evaluation is an empty string
+		return '';
+	}
+	
+	/**
+	 * Evaluate a static function call expression.
+	 * 
+	 * This function is a helper for {@link evaluate_expression()}.
+	 * 
+	 * @param array $matches Regex matches for function pattern.
+	 * @param Node $data A data tree containing variable values to use for
+	 *                   variable expressions.
+	 * @return string The evaluation of the function call.
+	 * @throws \BadFunctionCallException If the function is undefined.
+	 */
+	private static function evaluate_function(array $matches, Node $data) {
+		$function = $matches[1];
+		$parameter = $matches[2];
+		
+		if( !is_callable($function) ) {
+			throw new \BadFunctionCallException(
+				sprintf('Cannot call function "%s": function is not callable', $function)
+			);
+		}
+		
+		$parameter_value = self::evaluate_expression($parameter, $data, false);
+		
+		return call_user_func($function, $parameter_value);
+	}
+	
+	/**
+	 * Evaluate a PHP-constant expression.
+	 * 
+	 * This function is a helper for {@link evaluate_expression()}.
+	 * 
+	 * @param string $constant The name of the PHP constant.
+	 * @param bool $root_level Whether the expression was enclosed in curly
+	 *                         brackets (FALSE for sub-expressions);
+	 * @return string The evaluation of the constant if it is defined, the
+	 *                original constant name otherwise.
+	 */
+	private static function evaluate_constant($constant, $root_level) {
+		if( defined($constant) )
+			return constant($constant);
+		
+		return $root_level ? '{' . $constant . '}' : $constant;
+	}
+	
+	/**
+	 * Evaluate an expression.
+	 * 
+	 * The curly brackets should already have been stripped before passing an
+	 * expression to this method.
+	 * 
+	 * @param string $expression The expression to evaluate.
+	 * @param Node $data A data tree containing variable values to use for
+	 *                   variable expressions.
+	 * @param bool $root_level Whether the expression was enclosed in curly
+	 *                         brackets (FALSE for sub-expressions);
+	 * @return string The evaluation of the expression if present, the
+	 *                original string enclosed in curly brackets otherwise.
+	 */
+	private static function evaluate_expression($expression, Node $data, $root_level=true) {
+		if( $expression ) {
+			$name = '[a-zA-Z0-9-_]+';
+			$function = "$name(?:::$name)?";
+			
+			if( preg_match("/^([^?]*?)\s*\?([^:]*)(?::(.*))?$/", $expression, $matches) ) {
+				// <nested_exp>?<nested_exp> | <nested_exp>?<nested_exp>:<nested_exp>
+				return self::evaluate_condition($matches, $data);
+			} elseif( preg_match("/^\\$($name)(?:\.($name)(\(\))?)?$/", $expression, $matches) ) {
+				// $<name> | $<name>.<name> | $<name>.<name>()
+				return self::evaluate_variable($matches, $data);
+			} elseif( preg_match("/^($function)\((.+?)\)?$/", $expression, $matches) ) {
+				// <function>(<nested_exp>)
+				return self::evaluate_function($matches, $data);
+			} elseif( preg_match("/^([A-Z0-9_]+)$/", $expression, $matches) ) {
+				// <constant>
+				return self::evaluate_constant($expression, $root_level);
 			}
-			
-			return $value;
 		}
 		
-		return '{'.$variable.'}';
+		// No expression: return original string
+		return $root_level ? '{' . $expression . '}' : $expression;
 	}
 	
 	/**
