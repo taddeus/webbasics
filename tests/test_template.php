@@ -142,12 +142,11 @@ class TemplateTest extends PHPUnit_Framework_TestCase {
 	function test_parse_blocks_blocks() {
 		$tpl = new Template('blocks');
 		$root_block = $this->get_property($tpl, 'root_block');
-		$this->assert_is_block_node($root_block, null, 3);
+		$this->assert_is_block_node($root_block, null, 2);
 		
-		list($before, $foo, $after) = $root_block->get_children();
+		list($before, $foo) = $root_block->get_children();
 		$this->assert_is_html_node($before, '');
 		$this->assert_is_block_node($foo, 'foo', 3);
-		$this->assert_is_html_node($after, '');
 		
 		list($foofoo, $bar, $foobaz) = $foo->get_children();
 		$this->assert_is_html_node($foofoo, "\nfoofoo\n\t");
@@ -189,7 +188,7 @@ class TemplateTest extends PHPUnit_Framework_TestCase {
 		$this->assert_is_exp_node($foobar, '$foobar');
 		$this->assert_is_html_node($bar, "\nbar\n");
 		$this->assert_is_exp_node($foobaz, 'strtolower($foobaz)');
-		$this->assert_is_html_node($baz, "\nbaz");
+		$this->assert_is_html_node($baz, "\nbaz\n{\nno_variable\n}");
 	}
 	
 	/**
@@ -304,7 +303,7 @@ class TemplateTest extends PHPUnit_Framework_TestCase {
 	 * @depends test_evaluate_condition_if
 	 * @depends test_evaluate_condition_if_else
 	 */
-	function test_evaluate_condition_spaces() {
+	function test_evaluate_condition_extended() {
 		$this->assert_evaluates(' bar ', '$true? bar : baz');
 		$this->assert_evaluates(' baz', '$false? bar : baz');
 		
@@ -313,6 +312,8 @@ class TemplateTest extends PHPUnit_Framework_TestCase {
 		
 		$this->assert_evaluates(' Foo bar ', '$true ? Foo bar : Baz foo');
 		$this->assert_evaluates(' Baz foo', '$false ? Foo bar : Baz foo');
+		
+		$this->assert_evaluates('| bar', '$true ?| $foo');
 	}
 	
 	/** 
@@ -343,7 +344,7 @@ class TemplateTest extends PHPUnit_Framework_TestCase {
 	/**
 	 * @depends test_evaluate_variable_success
 	 * @depends test_evaluate_no_expression
-	 * @depends test_evaluate_condition_spaces
+	 * @depends test_evaluate_condition_extended
 	 * @depends test_evaluate_function_success
 	 * @depends test_evaluate_default_value
 	 */

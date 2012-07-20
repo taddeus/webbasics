@@ -3,3 +3,6 @@ foo
 bar
 {strtolower($foobaz)}
 baz
+{
+no_variable
+}

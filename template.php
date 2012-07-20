@@ -188,7 +188,7 @@ class Template extends Node {
 			$line_count += substr_count($before, "\n");
 			
 			// Everything before the new block belongs to its parent
-			$current->add('html')->set('content', $before);
+			$html = $current->add('html')->set('content', $before);
 			
 			if( $brackets_content == 'end' ) {
 				// {end} encountered, go one level up in the tree
@@ -201,6 +201,9 @@ class Template extends Node {
 				$block_name = substr($brackets_content, 6);
 				// Go one level deeper into the tree
 				$current = $current->add('block')->set('name', $block_name);
+			} elseif( strpos($brackets_content, "\n") !== false ) {
+				// Bracket content contains newlines, so it is probably JavaScript or CSS
+				$html->set('content', $before . '{' . $brackets_content . '}');
 			} else {
 				// Variable or something else
 				$current->add('expression')->set('content', $brackets_content);
@@ -213,7 +216,7 @@ class Template extends Node {
 			throw new ParseError($this, 'missing {end}', $line_count + 1);
 		
 		// Add the last remaining content to the root node
-		$root->add('html')->set('content', $after);
+		$after && $root->add('html')->set('content', $after);
 		
 		$this->root_block = $root;
 	}
@@ -272,12 +275,13 @@ class Template extends Node {
 	 * @throws \UnexpectedValueException In some other error situations.
 	 */
 	private static function evaluate_variable(array $matches, Node $data) {
-		$variable = $matches[1];
+		$before = $matches[1];
+		$variable = $matches[2];
 		$value = $data->get($variable);
 		
-		if( count($matches) == 3 ) {
+		if( count($matches) == 4 ) {
 			// $<name>.<name>
-			$attribute = $matches[2];
+			$attribute = $matches[3];
 			
 			if( $value === null ) {
 				throw new \UnexpectedValueException(
@@ -300,9 +304,9 @@ class Template extends Node {
 			} else {
 				$attr_error('variable is no array or object');
 			}
-		} elseif( count($matches) == 4 ) {
+		} elseif( count($matches) == 5 ) {
 			// $<name>.<name>()
-			$method = $matches[2];
+			$method = $matches[3];
 			
 			if( $value === null ) {
 				throw new \UnexpectedValueException(
@@ -324,7 +328,7 @@ class Template extends Node {
 			}
 		}
 		
-		return $value;
+		return $before . $value;
 	}
 	
 	/**
@@ -416,7 +420,7 @@ class Template extends Node {
 			if( preg_match("/^([^?]*?)\s*\?([^:]*)(?::(.*))?$/", $expression, $matches) ) {
 				// <nested_exp>?<nested_exp> | <nested_exp>?<nested_exp>:<nested_exp>
 				return self::evaluate_condition($matches, $data);
-			} elseif( preg_match("/^\\$($name)(?:\.($name)(\(\))?)?$/", $expression, $matches) ) {
+			} elseif( preg_match("/^(.*?)\\$($name)(?:\.($name)(\(\))?)?$/", $expression, $matches) ) {
 				// $<name> | $<name>.<name> | $<name>.<name>()
 				return self::evaluate_variable($matches, $data);
 			} elseif( preg_match("/^($function)\((.+?)\)?$/", $expression, $matches) ) {
