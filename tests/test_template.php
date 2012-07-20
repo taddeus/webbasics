@@ -334,11 +334,18 @@ class TemplateTest extends PHPUnit_Framework_TestCase {
 		$this->assert_evaluates('Bar', 'ucfirst(strtolower($FOO))');
 	}
 	
+	function test_evaluate_default_value() {
+		$this->assert_evaluates('bar', '$foo||fallback');
+		$this->assert_evaluates('fallback', '$foo.bar||fallback');
+		$this->assert_evaluates('', '$foo.bar||');
+	}
+	
 	/**
 	 * @depends test_evaluate_variable_success
 	 * @depends test_evaluate_no_expression
 	 * @depends test_evaluate_condition_spaces
 	 * @depends test_evaluate_function_success
+	 * @depends test_evaluate_default_value
 	 */
 	function test_evaluate_expression_combined() {
 		$this->assert_evaluates('Bar', '$true?ucfirst($foo)');

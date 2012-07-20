@@ -71,10 +71,12 @@ require_once 'node.php';
  * curly brackets: *{expression}*. The grammar of all expressions that are
  * currently supported can be described as follows:
  * <code>
- * &lt;expression&gt; : {&lt;nested_exp&gt;}
- *              | {&lt;nested_exp&gt;?&lt;nested_exp&gt;:&lt;nested_exp&gt;}  # Conditional statement
+ * &lt;expression&gt; : {&lt;exp&gt;}
+ * &lt;exp&gt; : &lt;nested_exp&gt;
+ *       | &lt;nested_exp&gt;?&lt;nested_exp&gt;:&lt;nested_exp&gt;  # Conditional statement
  * &lt;nested_exp&gt; : &lt;variable&gt;
- *              | &lt;function&gt;(&lt;nested_exp&gt;)  # Static function call
+ *              | &lt;nested_exp&gt;||&lt;nested_exp&gt;  # Default value
+ *              | &lt;function&gt;(&lt;nested_exp&gt;)    # Static function call
  *              | &lt;constant&gt;
  *              | &lt;html&gt;
  * &lt;variable&gt; : $&lt;name&gt;             # Regular variable
@@ -83,7 +85,7 @@ require_once 'node.php';
  * &lt;function&gt; : &lt;name&gt;          # Global function
  *            | &lt;name&gt;::&lt;name&gt;  # Static class method
  * &lt;constant&gt; : An all-caps PHP constant: [A-Z0-9_]+
- * &lt;html&gt; : A string without parentheses, curly brackets or semicolons: [^(){}:]*
+ * &lt;html&gt; : A string without parentheses, pipes, curly brackets or semicolons: [^()|{}:]*
  * &lt;name&gt; : A non-empty variable/method name consisting of [a-zA-Z0-9-_]+
  * </code>
  * 
@@ -423,6 +425,13 @@ class Template extends Node {
 			} elseif( preg_match("/^([A-Z0-9_]+)$/", $expression, $matches) ) {
 				// <constant>
 				return self::evaluate_constant($expression, $root_level);
+			} elseif( ($split_at = strpos($expression, '||', 1)) !== false ) {
+				// <nested_exp>||<nested_exp>
+				try {
+					return self::evaluate_expression(substr($expression, 0, $split_at), $data, false);
+				} catch(\RuntimeException $e) {
+					return self::evaluate_expression(substr($expression, $split_at + 2), $data, false);
+				}
 			}
 		}
 		
