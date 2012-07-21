@@ -1,0 +1,3 @@
+Template:
+- Escape variable values by default, prevent escape using $$ in template instead of $.
+- Be less 'forgiving': throw errors if requested constant/variable does not exist.
