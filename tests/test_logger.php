@@ -154,6 +154,7 @@ class LoggerTest extends PHPUnit_Extensions_OutputTestCase {
 	
 	function find_logfile() {
 		$files = scandir(LOGDIR);
+		$this->assertEquals(3, count($files));
 		return $files[2];
 	}
 	
