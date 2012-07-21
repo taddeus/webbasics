@@ -109,9 +109,13 @@ class TemplateTest extends PHPUnit_Framework_TestCase {
 		return $rp->getValue($object);
 	}
 	
+	static function strip_newlines($html) {
+		return str_replace("\r\n", "\n", $html);
+	}
+	
 	function assert_is_html_node($node, $content) {
 		$this->assertEquals('html', $node->get_name());
-		$this->assertEquals($content, str_replace("\r\n", "\n", $node->get('content')));
+		$this->assertEquals($content, self::strip_newlines($node->get('content')));
 		$this->assertEquals(array(), $node->get_children());
 	}
 	
@@ -358,7 +362,8 @@ class TemplateTest extends PHPUnit_Framework_TestCase {
 	
 	function assert_renders($expected_file, $tpl) {
 		$expected_file = "tests/_files/rendered/$expected_file.html";
-		$this->assertStringEqualsFile($expected_file, $tpl->render());
+		$this->assertEquals(self::strip_newlines(file_get_contents($expected_file)),
+		                    self::strip_newlines($tpl->render()));
 	}
 	
 	function test_render_simple() {
