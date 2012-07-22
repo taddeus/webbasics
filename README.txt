@@ -10,13 +10,13 @@ recommended).
 ----------
 Unit tests
 ----------
-Unit tests are in the 'tests/' directory. PHPUnit is used to run tests. The
-PHP extension Xdebug needs to be installed in order to generate a code
-coverage report. To run all unit tests, simply run 'phpunit' in the root
+Unit tests are located in the 'tests/' directory. PHPUnit is used to run
+tests. The PHP extension Xdebug needs to be installed in order to generate a
+code coverage report. To run all unit tests, simply run 'phpunit' in the root
 directory.
 
 -------------
 Documentation
 -------------
-PhpDocumentor can be used to generate documentation in the 'docs/' directory.
-Just run 'phpdoc' in the root directory.
+PhpDocumentor can be used to generate documentation in the 'build/docs/'
+directory. Just run 'phpdoc' in the root directory.
