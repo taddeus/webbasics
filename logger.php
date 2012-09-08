@@ -102,6 +102,14 @@ class Logger extends Base {
 		$this->process($message, self::DEBUG);
 	}
 
+	/**
+	 * Alias for 'debug', used by PHPActiveRecord.
+	 * @codeCoverageIgnore
+	 */
+	function log($message) {
+		$this->debug($message);
+	}
+
 	private function process($message, $level) {
 		if( $level <= $this->level )
 			$this->output[] = array($message, $level);
