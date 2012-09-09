@@ -293,7 +293,8 @@ class TemplateTest extends PHPUnit_Framework_TestCase {
 	 */
 	function test_evaluate_variable_escape() {
 		$this->assert_evaluates('&lt;script&gt;&lt;/script&gt;', '$html');
-		$this->assert_evaluates('I&ntilde;t&euml;rn&acirc;ti&ocirc;n&agrave;liz&aelig;ti&oslash;n', '$internationalization');
+		$this->assert_evaluates('Iñtërnâtiônàlizætiøn', '$internationalization');
+		//$this->assert_evaluates('I&ntilde;t&euml;rn&acirc;ti&ocirc;n&agrave;liz&aelig;ti&oslash;n', '$internationalization');
 	}
 	
 	/** 

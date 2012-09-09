@@ -74,14 +74,18 @@ require_once 'node.php';
  * &lt;expression&gt; : {&lt;exp&gt;}
  * &lt;exp&gt; : &lt;nested_exp&gt;
  *       | &lt;nested_exp&gt;?&lt;nested_exp&gt;:&lt;nested_exp&gt;  # Conditional statement
- * &lt;nested_exp&gt; : &lt;variable&gt;
+ * &lt;nested_exp&gt; : 
+ *              | &lt;variable&gt;
  *              | &lt;nested_exp&gt;||&lt;nested_exp&gt;  # Default value
  *              | &lt;function&gt;(&lt;nested_exp&gt;)    # Static function call
  *              | &lt;constant&gt;
  *              | &lt;html&gt;
- * &lt;variable&gt; : $&lt;name&gt;             # Regular variable
- *            | $&lt;name&gt;.&lt;name&gt;      # Object attribute or associative array value
- *            | $&lt;name&gt;.&lt;name&gt;()    # Method call (no arguments allowed)
+ * &lt;variable&gt; : $&lt;name&gt;            # Regular variable (escaped)
+ *            | $&lt;name&gt;.&lt;name&gt;     # Object attribute or associative array value (escaped)
+ *            | $&lt;name&gt;.&lt;name&gt;()   # Method call (escaped) (no arguments allowed)
+ *            | $$&lt;name&gt;           # Regular variable (plain)
+ *            | $$&lt;name&gt;.&lt;name&gt;    # Object attribute or associative array value (plain)
+ *            | $$&lt;name&gt;.&lt;name&gt;()  # Method call (plain)
  * &lt;function&gt; : &lt;name&gt;          # Global function
  *            | &lt;name&gt;::&lt;name&gt;  # Static class method
  * &lt;constant&gt; : An all-caps PHP constant: [A-Z0-9_]+
@@ -337,7 +341,7 @@ class Template extends Node {
 	}
 	
 	/**
-	 * Escape a vairable value for displaying in HTML.
+	 * Escape a variable value for displaying in HTML.
 	 * 
 	 * Uses {@link http://php.net/htmlentities} with ENT_QUOTES.
 	 * 
@@ -345,7 +349,7 @@ class Template extends Node {
 	 * @return string The escaped value.
 	 */
 	private static function escape_variable_value($value) {
-		return htmlentities($value, ENT_QUOTES);
+		return htmlspecialchars($value, ENT_QUOTES);
 	}
 	
 	/**
@@ -353,7 +357,7 @@ class Template extends Node {
 	 * 
 	 * This function is a helper for {@link evaluate_expression()}.
 	 * 
-	 * @param array $matches Regex matches for conditional pattern.
+	 * @param string[] $matches Regex matches for conditional pattern.
 	 * @param Node $data A data tree containing variable values to use for
 	 *                   variable expressions.
 	 * @return string The evaluation of the condition.
