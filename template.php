@@ -267,7 +267,7 @@ class Template extends Node {
 	 * 
 	 * This function is a helper for {@link evaluate_expression()}.
 	 * 
-	 * @param array $matches Regex matches for variable pattern.
+	 * @param string[] $matches Regex matches for variable pattern.
 	 * @return string The evaluation of the variable.
 	 * @param Node $data A data tree containing variable values to use.
 	 * @throws \BadMethodCallException If an error occured while calling a variable method.
@@ -276,12 +276,13 @@ class Template extends Node {
 	 */
 	private static function evaluate_variable(array $matches, Node $data) {
 		$before = $matches[1];
-		$variable = $matches[2];
+		$noescape_sign = $matches[2];
+		$variable = $matches[3];
 		$value = $data->get($variable);
 		
-		if( count($matches) == 4 ) {
+		if( count($matches) == 5 ) {
 			// $<name>.<name>
-			$attribute = $matches[3];
+			$attribute = $matches[4];
 			
 			if( $value === null ) {
 				throw new \UnexpectedValueException(
@@ -304,9 +305,9 @@ class Template extends Node {
 			} else {
 				$attr_error('variable is no array or object');
 			}
-		} elseif( count($matches) == 5 ) {
+		} elseif( count($matches) == 6 ) {
 			// $<name>.<name>()
-			$method = $matches[3];
+			$method = $matches[4];
 			
 			if( $value === null ) {
 				throw new \UnexpectedValueException(
@@ -328,7 +329,23 @@ class Template extends Node {
 			}
 		}
 		
+		// Escape value
+		if( is_string($value) && !$noescape_sign )
+			$value = self::escape_variable_value($value);
+		
 		return $before . $value;
+	}
+	
+	/**
+	 * Escape a vairable value for displaying in HTML.
+	 * 
+	 * Uses {@link http://php.net/htmlentities} with ENT_QUOTES.
+	 * 
+	 * @param string $value The variable value to escape.
+	 * @return string The escaped value.
+	 */
+	private static function escape_variable_value($value) {
+		return htmlentities($value, ENT_QUOTES);
 	}
 	
 	/**
@@ -420,8 +437,9 @@ class Template extends Node {
 			if( preg_match("/^([^?]*?)\s*\?([^:]*)(?::(.*))?$/", $expression, $matches) ) {
 				// <nested_exp>?<nested_exp> | <nested_exp>?<nested_exp>:<nested_exp>
 				return self::evaluate_condition($matches, $data);
-			} elseif( preg_match("/^(.*?)\\$($name)(?:\.($name)(\(\))?)?$/", $expression, $matches) ) {
+			} elseif( preg_match("/^(.*?)\\$(\\$?)($name)(?:\.($name)(\(\))?)?$/", $expression, $matches) ) {
 				// $<name> | $<name>.<name> | $<name>.<name>()
+				// | $$<name> | $$<name>.<name> | $$<name>.<name>()
 				return self::evaluate_variable($matches, $data);
 			} elseif( preg_match("/^($function)\((.+?)\)?$/", $expression, $matches) ) {
 				// <function>(<nested_exp>)

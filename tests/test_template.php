@@ -21,6 +21,8 @@ class DataObject {
 }
 
 class TemplateTest extends PHPUnit_Framework_TestCase {
+	const INTERNATIONALIZATION_STRING = 'Iñtërnâtiônàlizætiøn';
+	
 	/**
 	 * @depends test_add_root_success
 	 */
@@ -43,6 +45,8 @@ class TemplateTest extends PHPUnit_Framework_TestCase {
 			'object' => new DataObject,
 			'foobar' => 'my_foobar_variable',
 			'foobaz' => 'MY_FOOBAZ_VARIABLE',
+			'html' => '<script></script>',
+			'internationalization' => self::INTERNATIONALIZATION_STRING,
 		));
 	}
 	
@@ -282,6 +286,22 @@ class TemplateTest extends PHPUnit_Framework_TestCase {
 		$this->assert_evaluates('bar', '$object.foo');
 		$this->assert_evaluates('baz', '$object.bar');
 		$this->assert_evaluates('foobar', '$object.baz()');
+	}
+	
+	/** 
+	 * @depends test_evaluate_variable_success
+	 */
+	function test_evaluate_variable_escape() {
+		$this->assert_evaluates('&lt;script&gt;&lt;/script&gt;', '$html');
+		$this->assert_evaluates('I&ntilde;t&euml;rn&acirc;ti&ocirc;n&agrave;liz&aelig;ti&oslash;n', '$internationalization');
+	}
+	
+	/** 
+	 * @depends test_evaluate_variable_success
+	 */
+	function test_evaluate_variable_noescape() {
+		$this->assert_evaluates('<script></script>', '$$html');
+		$this->assert_evaluates('Iñtërnâtiônàlizætiøn', '$$internationalization');
 	}
 	
 	function test_evaluate_constant() {
