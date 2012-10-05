@@ -8,8 +8,12 @@
 	<transformer>
 		<target>build/docs</target>
 	</transformer>
+	<transformations>
+		<template name="zend" />
+	</transformations>
 	<files>
 		<directory>.</directory>
 		<ignore>tests/*</ignore>
+		<ignore>build/*</ignore>
 	</files>
 </phpdoc>
