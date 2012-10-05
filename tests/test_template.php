@@ -92,7 +92,7 @@ class TemplateTest extends PHPUnit_Framework_TestCase {
 	}
 	
 	/**
-	 * @expectedException RuntimeException
+	 * @expectedException webbasics\FormattedException
 	 */
 	function testNonExistingTemplate() {
 		$bar = new Template('bar');

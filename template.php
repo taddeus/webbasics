@@ -158,9 +158,9 @@ class Template extends Node {
 		}
 		
 		if (!$found) {
-			throw new \RuntimeException(
-				sprintf("Could not find template file \"%s\", looked in folders:\n%s",
-					$filename, implode("\n", $look_in))
+			throw new FormattedException(
+				"Could not find template file \"%s\", looked in folders:\n%s",
+				$filename, implode("\n", $look_in)
 			);
 		}
 		
@@ -455,7 +455,7 @@ class Template extends Node {
 				// <nested_exp>||<nested_exp>
 				try {
 					return self::evaluateExpression(substr($expression, 0, $split_at), $data, false);
-				} catch(\RuntimeException $e) {
+				} catch(\Exception $e) {
 					return self::evaluateExpression(substr($expression, $split_at + 2), $data, false);
 				}
 			}
@@ -505,7 +505,7 @@ class Template extends Node {
  * 
  * @package WebBasics
  */
-class ParseError extends \RuntimeException {
+class ParseError extends \Exception {
 	/**
 	 * Constructor.
 	 * 
