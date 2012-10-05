@@ -69,7 +69,7 @@ class Router extends Base {
 	 * @param array $routes An initial list of routes to set.
 	 */
 	function __construct(array $routes=array()) {
-		foreach( $routes as $pattern => $handler )
+		foreach ($routes as $pattern => $handler)
 			$this->add_route($pattern, $handler);
 	}
 	
@@ -88,10 +88,10 @@ class Router extends Base {
 	 * @throws \InvalidArgumentException If $handler is not callable.
 	 */
 	function add_route($pattern, $handler) {
-		if( !is_callable($handler) )
+		if (!is_callable($handler))
 			throw new \InvalidArgumentException(sprintf('Handler for patterns "%s" is not callable.', $pattern));
 		
-		$this->routes[self::DELIMITER.'^'.$pattern.'$'.self::DELIMITER] = $handler;
+		$this->routes[self::DELIMITER . '^' . $pattern . '$' . self::DELIMITER] = $handler;
 	}
 	
 	/**
@@ -108,12 +108,12 @@ class Router extends Base {
 	 *               corresponding handler function otherwise.
 	 */
 	function call_handler($url) {
-		foreach( $this->routes as $pattern => $handler ) {
-			if( preg_match($pattern, $url, $matches) ) {
+		foreach ($this->routes as $pattern => $handler) {
+			if (preg_match($pattern, $url, $matches)) {
 				array_shift($matches);
 				$result = call_user_func_array($handler, $matches);
 				
-				if( $result !== false )
+				if ($result !== false)
 					return $result;
 			}
 		}

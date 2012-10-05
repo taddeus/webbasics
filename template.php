@@ -146,10 +146,10 @@ class Template extends Node {
 		$look_in = count(self::$include_path) ? self::$include_path : array('.');
 		$found = false;
 		
-		foreach( $look_in as $root ) {
+		foreach ($look_in as $root) {
 			$path = $root.$filename;
 			
-			if( file_exists($path) ) {
+			if (file_exists($path)) {
 				$this->path = $path;
 				$this->file_content = file_get_contents($path);
 				$found = true;
@@ -157,7 +157,7 @@ class Template extends Node {
 			}
 		}
 		
-		if( !$found ) {
+		if (!$found) {
 			throw new \RuntimeException(
 				sprintf("Could not find template file \"%s\", looked in folders:\n%s",
 					$filename, implode("\n", $look_in))
@@ -187,25 +187,25 @@ class Template extends Node {
 		$after = $this->file_content;
 		$line_count = 0;
 		
-		while( preg_match('/(.*?)\{([^}]+)}(.*)/s', $after, $matches) ) {
+		while (preg_match('/(.*?)\{([^}]+)}(.*)/s', $after, $matches)) {
 			list($before, $brackets_content, $after) = array_slice($matches, 1);
 			$line_count += substr_count($before, "\n");
 			
 			// Everything before the new block belongs to its parent
 			$html = $current->add('html')->set('content', $before);
 			
-			if( $brackets_content == 'end' ) {
+			if ($brackets_content == 'end') {
 				// {end} encountered, go one level up in the tree
-				if( $current->is_root() )
+				if ($current->is_root())
 					throw new ParseError($this, 'unexpected {end}', $line_count + 1);
 				
 				$current = $current->get_parent();
-			} elseif( substr($brackets_content, 0, 6) == 'block:' ) {
+			} elseif(substr($brackets_content, 0, 6) == 'block:') {
 				// {block:...} encountered
 				$block_name = substr($brackets_content, 6);
 				// Go one level deeper into the tree
 				$current = $current->add('block')->set('name', $block_name);
-			} elseif( strpos($brackets_content, "\n") !== false ) {
+			} elseif (strpos($brackets_content, "\n") !== false) {
 				// Bracket content contains newlines, so it is probably JavaScript or CSS
 				$html->set('content', $before . '{' . $brackets_content . '}');
 			} else {
@@ -216,7 +216,7 @@ class Template extends Node {
 		
 		$line_count += substr_count($after, "\n");
 		
-		if( $current !== $root )
+		if ($current !== $root)
 			throw new ParseError($this, 'missing {end}', $line_count + 1);
 		
 		// Add the last remaining content to the root node
@@ -246,15 +246,15 @@ class Template extends Node {
 	private static function render_block(Node $block, Node $data) {
 		$html = '';
 		
-		foreach( $block->get_children() as $child ) {
-			switch( $child->get_name() ) {
+		foreach ($block->get_children() as $child) {
+			switch ($child->get_name()) {
 				case 'html':
 					$html .= $child->get('content');
 					break;
 				case 'block':
 					$block_name = $child->get('name');
 					
-					foreach( $data->find($block_name) as $child_data )
+					foreach ($data->find($block_name) as $child_data)
 						$html .= self::render_block($child, $child_data);
 					
 					break;
@@ -284,11 +284,11 @@ class Template extends Node {
 		$variable = $matches[3];
 		$value = $data->get($variable);
 		
-		if( count($matches) == 5 ) {
+		if (count($matches) == 5) {
 			// $<name>.<name>
 			$attribute = $matches[4];
 			
-			if( $value === null ) {
+			if ($value === null) {
 				throw new \UnexpectedValueException(
 					sprintf('Cannot get attribute "%s.%s": value is NULL', $variable, $attribute)
 				);
@@ -300,20 +300,20 @@ class Template extends Node {
 				);
 			};
 			
-			if( is_array($value) ) {
+			if (is_array($value)) {
 				isset($value[$attribute]) || $attr_error('no such key', '\OutOfBoundsException');
 				$value = $value[$attribute];
-			} elseif( is_object($value) ) {
+			} elseif (is_object($value)) {
 				isset($value->$attribute) || $attr_error('no such attribute');
 				$value = $value->$attribute;
 			} else {
 				$attr_error('variable is no array or object');
 			}
-		} elseif( count($matches) == 6 ) {
+		} elseif (count($matches) == 6) {
 			// $<name>.<name>()
 			$method = $matches[4];
 			
-			if( $value === null ) {
+			if ($value === null) {
 				throw new \UnexpectedValueException(
 					sprintf('Cannot call method "%s.%s()": object is NULL', $variable, $method)
 				);
@@ -325,7 +325,7 @@ class Template extends Node {
 				);
 			};
 			
-			if( is_object($value) ) {
+			if (is_object($value)) {
 				method_exists($value, $method) || $method_error('no such method');
 				$value = $value->$method();
 			} else {
@@ -334,7 +334,7 @@ class Template extends Node {
 		}
 		
 		// Escape value
-		if( is_string($value) && !$noescape_sign )
+		if (is_string($value) && !$noescape_sign)
 			$value = self::escape_variable_value($value);
 		
 		return $before . $value;
@@ -363,10 +363,10 @@ class Template extends Node {
 	 * @return string The evaluation of the condition.
 	 */
 	private static function evaluate_condition(array $matches, Node $data) {
-		if( self::evaluate_expression($matches[1], $data, false) ) {
+		if (self::evaluate_expression($matches[1], $data, false)) {
 			// Condition evaluates to true: return 'if' evaluation
 			return self::evaluate_expression($matches[2], $data, false);
-		} elseif( count($matches) == 4 ) {
+		} elseif (count($matches) == 4) {
 			// <nested_exp>?<nested_exp>:<nested_exp>
 			return self::evaluate_expression($matches[3], $data, false);
 		}
@@ -390,7 +390,7 @@ class Template extends Node {
 		$function = $matches[1];
 		$parameter = $matches[2];
 		
-		if( !is_callable($function) ) {
+		if (!is_callable($function)) {
 			throw new \BadFunctionCallException(
 				sprintf('Cannot call function "%s": function is not callable', $function)
 			);
@@ -413,7 +413,7 @@ class Template extends Node {
 	 *                original constant name otherwise.
 	 */
 	private static function evaluate_constant($constant, $root_level) {
-		if( defined($constant) )
+		if (defined($constant))
 			return constant($constant);
 		
 		return $root_level ? '{' . $constant . '}' : $constant;
@@ -434,24 +434,24 @@ class Template extends Node {
 	 *                original string enclosed in curly brackets otherwise.
 	 */
 	private static function evaluate_expression($expression, Node $data, $root_level=true) {
-		if( $expression ) {
+		if ($expression) {
 			$name = '[a-zA-Z0-9-_]+';
 			$function = "$name(?:::$name)?";
 			
-			if( preg_match("/^([^?]*?)\s*\?([^:]*)(?::(.*))?$/", $expression, $matches) ) {
+			if (preg_match("/^([^?]*?)\s*\?([^:]*)(?::(.*))?$/", $expression, $matches)) {
 				// <nested_exp>?<nested_exp> | <nested_exp>?<nested_exp>:<nested_exp>
 				return self::evaluate_condition($matches, $data);
-			} elseif( preg_match("/^(.*?)\\$(\\$?)($name)(?:\.($name)(\(\))?)?$/", $expression, $matches) ) {
+			} elseif (preg_match("/^(.*?)\\$(\\$?)($name)(?:\.($name)(\(\))?)?$/", $expression, $matches)) {
 				// $<name> | $<name>.<name> | $<name>.<name>()
 				// | $$<name> | $$<name>.<name> | $$<name>.<name>()
 				return self::evaluate_variable($matches, $data);
-			} elseif( preg_match("/^($function)\((.+?)\)?$/", $expression, $matches) ) {
+			} elseif (preg_match("/^($function)\((.+?)\)?$/", $expression, $matches)) {
 				// <function>(<nested_exp>)
 				return self::evaluate_function($matches, $data);
-			} elseif( preg_match("/^([A-Z0-9_]+)$/", $expression, $matches) ) {
+			} elseif (preg_match("/^([A-Z0-9_]+)$/", $expression, $matches)) {
 				// <constant>
 				return self::evaluate_constant($expression, $root_level);
-			} elseif( ($split_at = strpos($expression, '||', 1)) !== false ) {
+			} elseif (($split_at = strpos($expression, '||', 1)) !== false) {
 				// <nested_exp>||<nested_exp>
 				try {
 					return self::evaluate_expression(substr($expression, 0, $split_at), $data, false);
@@ -490,10 +490,10 @@ class Template extends Node {
 	 * @throws FileNotFoundError If the path does not exist.
 	 */
 	static function add_root($path) {
-		if( $path[strlen($path) - 1] != '/' )
+		if ($path[strlen($path) - 1] != '/')
 			$path .= '/';
 		
-		if( !is_dir($path) )
+		if (!is_dir($path))
 			throw new FileNotFoundError($path, true);
 		
 		self::$include_path[] = $path;

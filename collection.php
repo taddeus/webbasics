@@ -77,11 +77,11 @@ class Collection extends Base {
 	 * @throws \InvalidArgumentException If the added index already exists, and is non-numeric.
 	 */
 	function insert($item, $index) {
-		if( isset($this->items[$index]) ) {
-			if( !is_int($index) )
+		if (isset($this->items[$index])) {
+			if (!is_int($index))
 				throw new \InvalidArgumentException(sprintf('Index "%s" already exists in this collection.', $index));
 			
-			for( $i = count($this->items) - 1; $i >= $index; $i--)
+			for ($i = count($this->items) - 1; $i >= $index; $i--)
 				$this->items[$i + 1] = $this->items[$i];
 		}
 		
@@ -104,7 +104,7 @@ class Collection extends Base {
 	 * @throws \OutOfBoundsException if the collection is empty.
 	 */
 	function first() {
-		if( !$this->count() )
+		if (!$this->count())
 			throw new \OutOfBoundsException(sprintf('Cannot get first item: collection is empty.'));
 		
 		return $this->items[0];
@@ -117,7 +117,7 @@ class Collection extends Base {
 	 * @throws \OutOfBoundsException if the collection is empty.
 	 */
 	function last() {
-		if( !$this->count() )
+		if (!$this->count())
 			throw new \OutOfBoundsException(sprintf('Cannot get last item: collection is empty.'));
 		
 		return end($this->items);
@@ -179,7 +179,7 @@ class Collection extends Base {
 	 * @return Collection A collection with the new item set.
 	 */
 	private function set_items(array $items, $clone=true) {
-		if( $clone )
+		if ($clone)
 			return new self($items);
 		
 		$this->items = $items;
@@ -225,14 +225,14 @@ class Collection extends Base {
 	 */
 	function find(array $conditions, $clone=true) {
 		return $this->filter(function($item) use ($conditions) {
-			if( is_object($item) ) {
+			if (is_object($item)) {
 				// Object, match property values
 				foreach( $conditions as $property => $value )
 					if( $item->{$property} != $value )
 						return false;
-			} elseif( is_array($item) ) {
+			} elseif (is_array($item)) {
 				// Array item, match array values
-				foreach( $conditions as $property => $value )
+				foreach ($conditions as $property => $value)
 					if( $item[$property] != $value )
 						return false;
 			} else {
@@ -302,7 +302,7 @@ class Collection extends Base {
 	function map_method($method_name, array $args=array(), $clone=true) {
 		$items = array();
 		
-		foreach( $this->items as $item )
+		foreach ($this->items as $item)
 			$items[] = call_user_func_array(array($item, $method_name), $args);
 		
 		return $this->set_items($items);

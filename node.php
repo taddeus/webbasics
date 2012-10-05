@@ -183,7 +183,7 @@ class Node extends Base {
 	 * @param Node &$child The node to remove.
 	 */
 	function remove_child(Node &$child) {
-		foreach( $this->children as $i => $node )
+		foreach ($this->children as $i => $node)
 			$node->is($child) && array_splice($this->children, $i, 1);
 	}
 	
@@ -194,12 +194,12 @@ class Node extends Base {
 	 * @return Node This node.
 	 */
 	function remove() {
-		if( $this->is_root() )
+		if ($this->is_root())
 			throw new \RuntimeException('Cannot remove the root node of a tree.');
 		
 		$this->parent_node->remove_child($this);
 		
-		foreach( $this->children as $child )
+		foreach ($this->children as $child)
 			$child->set_parent(null);
 		
 		return $this;
@@ -215,7 +215,7 @@ class Node extends Base {
 	 * @return Node This node.
 	 */
 	function set_parent($parent) {
-		if( $this->parent_node !== null )
+		if ($this->parent_node !== null)
 			$this->parent_node->remove_child($this);
 		
 		$this->parent_node = &$parent;
@@ -231,8 +231,8 @@ class Node extends Base {
 	 * @return Node This node.
 	 */
 	function set($name, $value=null) {
-		if( is_array($name) ) {
-			foreach( $name as $var => $val )
+		if (is_array($name)) {
+			foreach ($name as $var => $val)
 				$this->variables[$var] = $val;
 		} else {
 			$this->variables[$name] = $value;
@@ -249,7 +249,7 @@ class Node extends Base {
 	 */
 	function get($name) {
 		// Variable inside this node?
-		if( isset($this->variables[$name]) )
+		if (isset($this->variables[$name]))
 			return $this->variables[$name];
 		
 		// Variable in one of ancestors?
@@ -311,8 +311,8 @@ class Node extends Base {
 		$copy = new self($this->name, $this->parent_node, $this->id);
 		$copy->set($this->variables);
 		
-		foreach( $this->children as $child ) {
-			if( $deep ) {
+		foreach ($this->children as $child) {
+			if ($deep) {
 				$child_copy = $child->copy(true);
 				$copy->add_child($child_copy);
 			} else {

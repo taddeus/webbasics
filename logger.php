@@ -40,7 +40,7 @@ class Logger extends Base {
 	}
 
 	function set_dump_format($format) {
-		if( !in_array($format, self::$allowed_dump_formats) )
+		if (!in_array($format, self::$allowed_dump_formats))
 			throw new \InvalidArgumentException(sprintf('', $format));
 
 		$this->dump_format = $format;
@@ -63,16 +63,16 @@ class Logger extends Base {
 	}
 
 	function set_level($level) {
-		if( is_string($level) ) {
+		if (is_string($level)) {
 			$level = strtoupper($level);
 
-			if( !defined('self::'.$level) )
+			if (!defined('self::'.$level))
 				throw new \InvalidArgumentException(sprintf('Invalid debug level %s.', $level));
 
 			$level = constant('self::'.$level);
 		}
 
-		if( $level < self::CRITICAL || $level > self::DEBUG )
+		if ($level < self::CRITICAL || $level > self::DEBUG)
 			throw new \InvalidArgumentException(sprintf('Invalid debug level %d.', $level));
 
 		$this->level = $level;
@@ -111,7 +111,7 @@ class Logger extends Base {
 	}
 
 	private function process($message, $level) {
-		if( $level <= $this->level )
+		if ($level <= $this->level)
 			$this->output[] = array($message, $level);
 	}
 
@@ -119,18 +119,18 @@ class Logger extends Base {
 		$logger = $this;
 		$output = '';
 
-		foreach( $this->output as $i => $tuple ) {
+		foreach ($this->output as $i => $tuple) {
 			list($message, $level) = $tuple;
 			$i && $output .= "\n";
 			$output .= preg_replace_callback(
 				'/%\(([a-z-_ ]*)\)/i',
-				function ($matches) use ($logger, $message, $level) {
+				function($matches) use ($logger, $message, $level) {
 					$name = $matches[1];
 
-					if( $name == 'message' )
+					if ($name == 'message')
 						return $message;
 
-					if( $name == 'level' )
+					if ($name == 'level')
 						return Logger::$level_names[$level];
 
 					return $logger->get_formatted_property($matches[1]);
@@ -143,7 +143,7 @@ class Logger extends Base {
 	}
 
 	function dump($file_prefix='log') {
-		switch( $this->dump_format ) {
+		switch ($this->dump_format) {
 			case 'none':
                 return;
 			case 'plain':
@@ -163,7 +163,7 @@ class Logger extends Base {
 	}
 
 	function save($path) {
-		if( $this->log_directory && !is_dir($this->log_directory) )
+		if ($this->log_directory && !is_dir($this->log_directory))
 			mkdir($this->log_directory, 0777, true);
 
 		file_put_contents($this->log_directory . $path, $this->dumps());
@@ -184,7 +184,7 @@ class Logger extends Base {
 	}
 
 	function get_formatted_property($property) {
-		if( isset($this->properties[$property]) )
+		if (isset($this->properties[$property]))
 			return $this->properties[$property];
 
 		switch( $property ) {

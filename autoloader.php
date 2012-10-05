@@ -170,7 +170,7 @@ class Autoloader extends Base {
 	private function strip_root_namespace($classname) {
 		$begin = substr($classname, 0, strlen($this->root_namespace));
 		
-		if( $begin == $this->root_namespace )
+		if ($begin == $this->root_namespace)
 			$classname = substr($classname, strlen($this->root_namespace));
 		
 		return $classname;
@@ -189,7 +189,7 @@ class Autoloader extends Base {
 		$dirs = array_map('self::classname_to_filename', $namespaces);
 		$path = $this->root_directory;
 		
-		if( count($dirs) > 1 )
+		if (count($dirs) > 1)
 			$path .= implode('/', array_slice($dirs, 0, count($dirs) - 1)).'/';
 		
 		$path .= end($dirs).'.php';
@@ -211,8 +211,8 @@ class Autoloader extends Base {
 		$classname = $this->strip_root_namespace($classname);
 		$path = $this->create_path($classname);
 		
-		if( !file_exists($path) ) {
-			if( $throw || ($throw === null && $this->throw_errors) )
+		if (!file_exists($path)) {
+			if ($throw || ($throw === null && $this->throw_errors))
 				throw new FileNotFoundError($path);
 			
 			return false;

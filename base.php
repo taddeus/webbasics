@@ -99,7 +99,7 @@ class FileNotFoundError extends \RuntimeException {
 function asprintf($format, array $params) {
 	return preg_replace_callback(
 		'/%\(([a-z-_ ]*)\)/i',
-		function ($matches) use ($params) {
+		function($matches) use ($params) {
 			return (string)$params[$matches[1]];
 		},
 		$format
