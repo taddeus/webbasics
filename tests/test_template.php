@@ -1,8 +1,8 @@
 <?php
 
 require_once 'template.php';
-use WebBasics\Template;
-use WebBasics\Node;
+use webbasics\Template;
+use webbasics\Node;
 
 define('TEMPLATES_DIR', 'tests/_files/templates/');
 define('FOOBAR', 'foobar_const');
@@ -51,7 +51,7 @@ class TemplateTest extends PHPUnit_Framework_TestCase {
 	}
 	
 	/**
-	 * @expectedException WebBasics\FileNotFoundError
+	 * @expectedException webbasics\FileNotFoundError
 	 * @expectedExceptionMessage Directory "non_existing_folder/" does not exist.
 	 */
 	function test_add_root_failure() {
@@ -59,7 +59,7 @@ class TemplateTest extends PHPUnit_Framework_TestCase {
 	}
 	
 	function assert_include_path_equals($expected) {
-		$include_path = new ReflectionProperty('WebBasics\Template', 'include_path');
+		$include_path = new ReflectionProperty('webbasics\Template', 'include_path');
 		$include_path->setAccessible(true);
 		$this->assertEquals($expected, $include_path->getValue());
 	}
@@ -167,7 +167,7 @@ class TemplateTest extends PHPUnit_Framework_TestCase {
 	
 	/**
 	 * @depends test_parse_blocks_blocks
-	 * @expectedException WebBasics\ParseError
+	 * @expectedException webbasics\ParseError
 	 * @expectedExceptionMessage Parse error in file tests/_files/templates/unexpected_end.tpl, line 5: unexpected {end}
 	 */
 	function test_parse_blocks_unexpected_end() {
@@ -176,7 +176,7 @@ class TemplateTest extends PHPUnit_Framework_TestCase {
 	
 	/**
 	 * @depends test_parse_blocks_blocks
-	 * @expectedException WebBasics\ParseError
+	 * @expectedException webbasics\ParseError
 	 * @expectedExceptionMessage Parse error in file tests/_files/templates/missing_end.tpl, line 6: missing {end}
 	 */
 	function test_parse_blocks_missing_end() {
@@ -228,7 +228,7 @@ class TemplateTest extends PHPUnit_Framework_TestCase {
 	
 	function evaluate_expression() {
 		$args = func_get_args();
-		$eval = new ReflectionMethod('WebBasics\Template', 'evaluate_expression');
+		$eval = new ReflectionMethod('webbasics\Template', 'evaluate_expression');
 		$eval->setAccessible(true);
 		return $eval->invokeArgs(null, $args);
 	}

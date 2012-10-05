@@ -1,7 +1,7 @@
 <?php
 
 require_once 'router.php';
-use WebBasics\Router;
+use webbasics\Router;
 
 function test_handler_no_args() {
 	return true;

@@ -1,7 +1,7 @@
 <?php
 
 require_once 'collection.php';
-use WebBasics\Collection;
+use webbasics\Collection;
 
 class IdObject {
 	static $count = 0;

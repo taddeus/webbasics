@@ -1,7 +1,7 @@
 <?php
 
 require_once 'base.php';
-use WebBasics\Base;
+use webbasics\Base;
 
 class BaseExtension extends Base {
 	function __construct($foo, $bar) {
@@ -16,10 +16,10 @@ class BaseTest extends PHPUnit_Framework_TestCase {
 	}
 	
 	function test_asprintf() {
-		$this->assertEquals(WebBasics\asprintf('%(foo) baz', array('foo' => 'bar')), 'bar baz');
-		$this->assertEquals(WebBasics\asprintf('%(foo) baz %(foo)',
+		$this->assertEquals(webbasics\asprintf('%(foo) baz', array('foo' => 'bar')), 'bar baz');
+		$this->assertEquals(webbasics\asprintf('%(foo) baz %(foo)',
 			array('foo' => 'bar')), 'bar baz bar');
-		$this->assertEquals(WebBasics\asprintf('%(bar) baz %(foo)',
+		$this->assertEquals(webbasics\asprintf('%(bar) baz %(foo)',
 			array('foo' => 'bar', 'bar' => 'foobar')), 'foobar baz bar');
 	}
 	

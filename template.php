@@ -6,7 +6,7 @@
  * @date 14-07-2012
  */
 
-namespace WebBasics;
+namespace webbasics;
 
 require_once 'node.php';
 
