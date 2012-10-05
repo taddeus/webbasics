@@ -67,11 +67,28 @@ abstract class Base {
 }
 
 /**
+ * Exception with sprintf()-like constructor for error message formatting.
+ * 
+ * @package WebBasics
+ * @link http://php.net/sprintf
+ */
+class FormattedException extends \Exception {
+	/**
+	 * Constructor, sets a formatted error message.
+     * @link http://php.net/sprintf
+	 */
+	function __construct() {
+		$args = func_get_args();
+		$this->message = call_user_func_array('sprintf', $args);
+	}
+}
+
+/**
  * Exception, thrown when a required file does not exist.
  * 
  * @package WebBasics
  */
-class FileNotFoundError extends \RuntimeException {
+class FileNotFoundError extends \Exception {
 	/**
 	 * Create a new FileNotFoundError instance.
 	 * 
