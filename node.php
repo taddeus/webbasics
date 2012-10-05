@@ -16,7 +16,7 @@ require_once 'base.php';
  * Each tree node has a (non-unique) name, a list of variables, and zero or
  * more children.
  * 
- * @package webbasics
+ * @package WebBasics
  */
 class Node extends Base {
 	/**
