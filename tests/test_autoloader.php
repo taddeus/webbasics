@@ -10,139 +10,139 @@ class AutoloaderTest extends PHPUnit_Framework_TestCase {
 		$this->autoloader = new Autoloader(PATH);
 	}
 	
-	function test_set_root_namespace() {
+	function testSetRootNamespace() {
 		$this->assertAttributeEquals('\\', 'root_namespace', $this->autoloader);
-		$this->autoloader->set_root_namespace('Foo');
+		$this->autoloader->setRootNamespace('Foo');
 		$this->assertAttributeEquals('Foo\\', 'root_namespace', $this->autoloader);
-		$this->autoloader->set_root_namespace('Foo\\');
+		$this->autoloader->setRootNamespace('Foo\\');
 		$this->assertAttributeEquals('Foo\\', 'root_namespace', $this->autoloader);
 	}
 	
 	/**
-	 * @depends test_set_root_namespace
+	 * @depends testSetRootNamespace
 	 */
-	function test_get_root_namespace() {
-		$this->autoloader->set_root_namespace('Foo');
-		$this->assertEquals($this->autoloader->get_root_namespace(), 'Foo\\');
+	function testGetRootNamespace() {
+		$this->autoloader->setRootNamespace('Foo');
+		$this->assertEquals($this->autoloader->getRootNamespace(), 'Foo\\');
 	}
 	
 	/**
-	 * @depends test_set_root_namespace
+	 * @depends testSetRootNamespace
 	 */
-	function test_construct_root_namespace() {
+	function testConstructRootNamespace() {
 		$autoloader = new Autoloader(PATH, 'Foo');
 		$this->assertAttributeEquals('Foo\\', 'root_namespace', $autoloader);
 	}
 	
 	/**
-	 * @depends test_set_root_namespace
+	 * @depends testSetRootNamespace
 	 */
-	function test_strip_root_namespace() {
-		$strip = new ReflectionMethod('webbasics\Autoloader', 'strip_root_namespace');
+	function testStripRootNamespace() {
+		$strip = new ReflectionMethod('webbasics\Autoloader', 'stripRootNamespace');
 		$strip->setAccessible(true);
 		
-		$this->autoloader->set_root_namespace('Foo');
+		$this->autoloader->setRootNamespace('Foo');
 		$this->assertEquals($strip->invoke($this->autoloader, 'Foo\Bar'), 'Bar');
 	}
 	
-	function test_set_root_directory() {
-		$this->autoloader->set_root_directory('tests');
-		$this->assertEquals($this->autoloader->get_root_directory(), 'tests/');
+	function testSetRootDirectory() {
+		$this->autoloader->setRootDirectory('tests');
+		$this->assertEquals($this->autoloader->getRootDirectory(), 'tests/');
 	}
 	
-	function test_classname_to_filename() {
-		$this->assertEquals(Autoloader::classname_to_filename('Foo'), 'foo');
-		$this->assertEquals(Autoloader::classname_to_filename('FooBar'), 'foo_bar');
-		$this->assertEquals(Autoloader::classname_to_filename('fooBar'), 'foo_bar');
-		$this->assertEquals(Autoloader::classname_to_filename('FooBarBaz'), 'foo_bar_baz');
+	function testClassnameToFilename() {
+		$this->assertEquals(Autoloader::classnameToFilename('Foo'), 'foo');
+		$this->assertEquals(Autoloader::classnameToFilename('FooBar'), 'foo_bar');
+		$this->assertEquals(Autoloader::classnameToFilename('fooBar'), 'foo_bar');
+		$this->assertEquals(Autoloader::classnameToFilename('FooBarBaz'), 'foo_bar_baz');
 	}
 	
 	/**
-	 * @depends test_classname_to_filename
+	 * @depends testClassnameToFilename
 	 */
-	function test_create_path() {
-		$this->assertEquals($this->autoloader->create_path('Foo'), PATH.'foo.php');
-		$this->assertEquals($this->autoloader->create_path('\Foo'), PATH.'foo.php');
-		$this->assertEquals($this->autoloader->create_path('Foo\Bar'), PATH.'foo/bar.php');
-		$this->assertEquals($this->autoloader->create_path('Foo\Bar\Baz'), PATH.'foo/bar/baz.php');
-		$this->assertEquals($this->autoloader->create_path('FooBar\Baz'), PATH.'foo_bar/baz.php');
+	function testCreatePath() {
+		$this->assertEquals($this->autoloader->createPath('Foo'), PATH.'foo.php');
+		$this->assertEquals($this->autoloader->createPath('\Foo'), PATH.'foo.php');
+		$this->assertEquals($this->autoloader->createPath('Foo\Bar'), PATH.'foo/bar.php');
+		$this->assertEquals($this->autoloader->createPath('Foo\Bar\Baz'), PATH.'foo/bar/baz.php');
+		$this->assertEquals($this->autoloader->createPath('FooBar\Baz'), PATH.'foo_bar/baz.php');
 	}
 	
-	function test_throw_errors() {
-		$this->assertFalse($this->autoloader->get_throw_errors());
-		$this->autoloader->set_throw_errors(true);
-		$this->assertTrue($this->autoloader->get_throw_errors());
+	function testThrowErrors() {
+		$this->assertFalse($this->autoloader->getThrowErrors());
+		$this->autoloader->setThrowErrors(true);
+		$this->assertTrue($this->autoloader->getThrowErrors());
 	}
 	
 	/**
-	 * @depends test_create_path
-	 * @depends test_throw_errors
+	 * @depends testCreatePath
+	 * @depends testThrowErrors
 	 */
-	function test_load_class_not_found() {
-		$this->assertFalse($this->autoloader->load_class('foobar'));
+	function testLoadClassNotFound() {
+		$this->assertFalse($this->autoloader->loadClass('foobar'));
 	}
 	
 	/**
-	 * @depends test_load_class_not_found
+	 * @depends testLoadClassNotFound
 	 * @expectedException webbasics\FileNotFoundError
 	 * @expectedExceptionMessage File "tests/_files/foobar.php" does not exist.
 	 */
-	function test_load_class_not_found_error() {
-		$this->autoloader->set_throw_errors(true);
-		$this->autoloader->load_class('foobar');
+	function testLoadClassNotFoundError() {
+		$this->autoloader->setThrowErrors(true);
+		$this->autoloader->loadClass('foobar');
 	}
 	
 	/**
-	 * @depends test_load_class_not_found
+	 * @depends testLoadClassNotFound
 	 * @expectedException webbasics\FileNotFoundError
 	 * @expectedExceptionMessage File "tests/_files/foobar.php" does not exist.
 	 */
-	function test_load_class_not_found_noerror_overwrite() {
-		$this->autoloader->load_class('foobar', true);
+	function testLoadClassNotFoundNoerrorOverwrite() {
+		$this->autoloader->loadClass('foobar', true);
 	}
 	
 	/**
-	 * @depends test_load_class_not_found
+	 * @depends testLoadClassNotFound
 	 */
-	function test_load_class_not_found_error_overwrite() {
-		$this->autoloader->set_throw_errors(true);
-		$this->assertFalse($this->autoloader->load_class('foobar', false));
+	function testLoadClassNotFoundErrorOverwrite() {
+		$this->autoloader->setThrowErrors(true);
+		$this->assertFalse($this->autoloader->loadClass('foobar', false));
 	}
 	
 	/**
-	 * @depends test_load_class_not_found
+	 * @depends testLoadClassNotFound
 	 */
-	function test_load_class() {
-		$this->assertTrue($this->autoloader->load_class('Foo'));
+	function testLoadClass() {
+		$this->assertTrue($this->autoloader->loadClass('Foo'));
 		$this->assertTrue(class_exists('Foo', false));
-		$this->assertTrue($this->autoloader->load_class('Foo\Bar'));
+		$this->assertTrue($this->autoloader->loadClass('Foo\Bar'));
 		$this->assertTrue(class_exists('Foo\Bar', false));
 	}
 	
 	/**
-	 * @depends test_load_class
-	 * @depends test_strip_root_namespace
+	 * @depends testLoadClass
+	 * @depends testStripRootNamespace
 	 */
-	function test_load_class_root_namespace() {
+	function testLoadClassRootNamespace() {
 		$autoloader = new Autoloader(PATH.'foo');
-		$autoloader->set_root_namespace('Foo');
-		$this->assertTrue($autoloader->load_class('Bar'));
+		$autoloader->setRootNamespace('Foo');
+		$this->assertTrue($autoloader->loadClass('Bar'));
 		$this->assertTrue(class_exists('Foo\Bar', false));
 	}
 	
 	/**
-	 * @depends test_load_class
+	 * @depends testLoadClass
 	 */
-	function test_register() {
+	function testRegister() {
 		$this->autoloader->register();
 		$this->assertTrue(class_exists('Baz'));
 	}
 	
 	/**
-	 * @depends test_register
-	 * @depends test_throw_errors
+	 * @depends testRegister
+	 * @depends testThrowErrors
 	 */
-	function test_register_prepend() {
+	function testRegisterPrepend() {
 		$second_loader = new Autoloader(PATH.'second');
 		$this->autoloader->register();
 		$second_loader->register(true);  // Prepend so that the second loader attemps to load Bar first

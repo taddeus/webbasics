@@ -88,7 +88,7 @@ class Node extends Base {
 	 * 
 	 * @return int The node's id.
 	 */
-	function get_id() {
+	function getId() {
 		return $this->id;
 	}
 	
@@ -97,7 +97,7 @@ class Node extends Base {
 	 * 
 	 * @return string The node's name.
 	 */
-	function get_name() {
+	function getName() {
 		return $this->name;
 	}
 	
@@ -106,7 +106,7 @@ class Node extends Base {
 	 * 
 	 * @return Node|null The parent node if any, NULL otherwise.
 	 */
-	function get_parent() {
+	function getParent() {
 		return $this->parent_node;
 	}
 	
@@ -115,7 +115,7 @@ class Node extends Base {
 	 * 
 	 * @return array A list of child nodes.
 	 */
-	function get_children() {
+	function getChildren() {
 		return $this->children;
 	}
 	
@@ -126,7 +126,7 @@ class Node extends Base {
 	 * @return bool Whether the nodes have the same unique id.
 	 */
 	function is(Node $node) {
-		return $node->get_id() == $this->id;
+		return $node->getId() == $this->id;
 	}
 	
 	/**
@@ -136,7 +136,7 @@ class Node extends Base {
 	 * 
 	 * @return bool Whether this node is the root node.
 	 */
-	function is_root() {
+	function isRoot() {
 		return $this->parent_node === null;
 	}
 	
@@ -147,7 +147,7 @@ class Node extends Base {
 	 * 
 	 * @return bool Whether this node is a leaf node.
 	 */
-	function is_leaf() {
+	function isLeaf() {
 		return !count($this->children);
 	}
 	
@@ -158,9 +158,9 @@ class Node extends Base {
 	 * @param bool $set_parent Whether to set this node as the child's parent
 	 *                         (defaults to TRUE).
 	 */
-	function add_child(Node &$node, $set_parent=true) {
+	function addChild(Node &$node, $set_parent=true) {
 		$this->children[] = $node;
-		$set_parent && $node->set_parent($this);
+		$set_parent && $node->setParent($this);
 	}
 	
 	/**
@@ -172,7 +172,7 @@ class Node extends Base {
 	 */
 	function add($name, array $data=array()) {
 		$node = new self($name, $this);
-		$this->add_child($node, false);
+		$this->addChild($node, false);
 		
 		return $node->set($data);
 	}
@@ -182,7 +182,7 @@ class Node extends Base {
 	 * 
 	 * @param Node &$child The node to remove.
 	 */
-	function remove_child(Node &$child) {
+	function removeChild(Node &$child) {
 		foreach ($this->children as $i => $node)
 			$node->is($child) && array_splice($this->children, $i, 1);
 	}
@@ -194,13 +194,13 @@ class Node extends Base {
 	 * @return Node This node.
 	 */
 	function remove() {
-		if ($this->is_root())
+		if ($this->isRoot())
 			throw new \RuntimeException('Cannot remove the root node of a tree.');
 		
-		$this->parent_node->remove_child($this);
+		$this->parent_node->removeChild($this);
 		
 		foreach ($this->children as $child)
-			$child->set_parent(null);
+			$child->setParent(null);
 		
 		return $this;
 	}
@@ -214,9 +214,9 @@ class Node extends Base {
 	 * @param Node|null $parent The parent node to set.
 	 * @return Node This node.
 	 */
-	function set_parent($parent) {
+	function setParent($parent) {
 		if ($this->parent_node !== null)
-			$this->parent_node->remove_child($this);
+			$this->parent_node->removeChild($this);
 		
 		$this->parent_node = &$parent;
 		
@@ -292,7 +292,7 @@ class Node extends Base {
 	 */
 	function find($name) {
 		$has_name = function($child) use ($name) {
-			return $child->get_name() == $name;
+			return $child->getName() == $name;
 		};
 		
 		return array_values(array_filter($this->children, $has_name));
@@ -314,9 +314,9 @@ class Node extends Base {
 		foreach ($this->children as $child) {
 			if ($deep) {
 				$child_copy = $child->copy(true);
-				$copy->add_child($child_copy);
+				$copy->addChild($child_copy);
 			} else {
-				$copy->add_child($child, false);
+				$copy->addChild($child, false);
 			}
 		}
 		

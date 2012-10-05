@@ -16,25 +16,25 @@ require_once 'base.php';
  * 
  * Example 1: Index a list based on its values and extract a single attribute.
  * <code>
- * class Book extends PHPActiveRecord\Model {
+ * class Book extends ActiveRecord\Model {
  *     static $attr_accessible = array('id', 'name');
  * }
  * 
  * // Index all book names by their id.
  * $books = Book::all();                      // Find a list of books
  * $collection = new Collection($books);      // Put the list in a collection
- * $indexed = $collection->index_by('id');    // Create indexes for all books
- * $names = $indexed->get_attribute('name');  // Get the values of a single attribute
+ * $indexed = $collection->indexBy('id');    // Create indexes for all books
+ * $names = $indexed->getAttribute('name');  // Get the values of a single attribute
  * // $names now contains something like array(1 => 'Some book', 2 => 'Another book')
  * 
  * // Same as above:
- * $names = Collection::create(Book::all())->index_by('id')->get_attribute('name');
+ * $names = Collection::create(Book::all())->indexBy('id')->getAttribute('name');
  * </code>
  * 
  * Example 2: Execute a method for each item in a list.
  * <code>
  * // Delete all books
- * Collection::create(Book::all())->map_method('delete');
+ * Collection::create(Book::all())->mapMethod('delete');
  * </code>
  * 
  * @package WebBasics
@@ -138,7 +138,7 @@ class Collection extends Base {
 	 * @param int|string $index The index to check existance of.
 	 * @return bool Whether the index exists.
 	 */
-	function index_exists($index) {
+	function indexExists($index) {
 		return isset($this->items[$index]);
 	}
 	
@@ -157,7 +157,7 @@ class Collection extends Base {
 	 * 
 	 * @param int|string $index The index to the item to delete.
 	 */
-	function delete_index($index) {
+	function deleteIndex($index) {
 		unset($this->items[$index]);
 	}
 	
@@ -167,7 +167,7 @@ class Collection extends Base {
 	 * @param mixed $item The item to delete.
 	 */
 	function delete($item) {
-		$this->delete_index(array_search($item, $this->items));
+		$this->deleteIndex(array_search($item, $this->items));
 	}
 	
 	/**
@@ -178,7 +178,7 @@ class Collection extends Base {
 	 *                    object's item set and not create a new object.
 	 * @return Collection A collection with the new item set.
 	 */
-	private function set_items(array $items, $clone=true) {
+	private function setItems(array $items, $clone=true) {
 		if ($clone)
 			return new self($items);
 		
@@ -194,7 +194,7 @@ class Collection extends Base {
 	 * @return Collection A collection without duplicates.
 	 */
 	function uniques($clone=false) {
-		return $this->set_items(array_values(array_unique($this->items)), $clone);
+		return $this->setItems(array_values(array_unique($this->items)), $clone);
 	}
 	
 	/**
@@ -207,7 +207,7 @@ class Collection extends Base {
 	 * @return Collection A collection with the filtered set of items.
 	 */
 	function filter($callback, $clone=true) {
-		return $this->set_items(array_values(array_filter($this->items, $callback)), $clone);
+		return $this->setItems(array_values(array_filter($this->items, $callback)), $clone);
 	}
 	
 	/**
@@ -227,13 +227,13 @@ class Collection extends Base {
 		return $this->filter(function($item) use ($conditions) {
 			if (is_object($item)) {
 				// Object, match property values
-				foreach( $conditions as $property => $value )
-					if( $item->{$property} != $value )
+				foreach ($conditions as $property => $value)
+					if ($item->{$property} != $value)
 						return false;
 			} elseif (is_array($item)) {
 				// Array item, match array values
 				foreach ($conditions as $property => $value)
-					if( $item[$property] != $value )
+					if ($item[$property] != $value)
 						return false;
 			} else {
 				// Other, incompatible type -> throw exception
@@ -254,7 +254,7 @@ class Collection extends Base {
 	 * @param string $attribute The name of the attribute to get the value of.
 	 * @return array The original item keys, pointing to single attribute values.
 	 */
-	function get_attribute($attribute) {
+	function getAttribute($attribute) {
 		return array_map(function($item) use ($attribute) {
 			return $item->{$attribute};
 		}, $this->items);
@@ -269,13 +269,13 @@ class Collection extends Base {
 	 * @param bool $clone Whether to create a new object, or overwrite the current item set.
 	 * @return Collection A collection object with the values of the attribute used as indices.
 	 */
-	function index_by($attribute, $clone=true) {
+	function indexBy($attribute, $clone=true) {
 		$indexed = array();
 		
-		foreach( $this->items as $item )
+		foreach ($this->items as $item)
 			$indexed[$item->$attribute] = $item;
 		
-		return $this->set_items($indexed, $clone);
+		return $this->setItems($indexed, $clone);
 	}
 	
 	/**
@@ -286,7 +286,7 @@ class Collection extends Base {
 	 * @return Collection A collection with return values of the callback calls.
 	 */
 	function map($callback, $clone=true) {
-		return $this->set_items(array_map($callback, $this->items), $clone);
+		return $this->setItems(array_map($callback, $this->items), $clone);
 	}
 	
 	/**
@@ -299,13 +299,13 @@ class Collection extends Base {
 	 * @param bool $clone Whether to create a new object, or overwrite the current item set.
 	 * @return Collection A collection with return values of the method calls.
 	 */
-	function map_method($method_name, array $args=array(), $clone=true) {
+	function mapMethod($method_name, array $args=array(), $clone=true) {
 		$items = array();
 		
 		foreach ($this->items as $item)
 			$items[] = call_user_func_array(array($item, $method_name), $args);
 		
-		return $this->set_items($items);
+		return $this->setItems($items);
 	}
 }
 

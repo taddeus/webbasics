@@ -16,7 +16,7 @@ require_once 'base.php';
  * Simple example: all classes are located in the 'classes' directory.
  * <code>
  * $loader = new Autoloader('classes');
- * $loader->load_class('FooBar');  // Includes file 'classes/foo_bar.php'
+ * $loader->loadClass('FooBar');  // Includes file 'classes/foo_bar.php'
  * </code>
  * 
  * An Autoloader instance can register itself to the SPL autoload stack, so
@@ -85,9 +85,9 @@ class Autoloader extends Base {
 	 * @param bool $throw Whether to throw an exception when a class file does not exist.
 	 */
 	function __construct($root_directory, $root_namespace='\\', $throw=false) {
-		$this->set_root_directory($root_directory);
-		$this->set_root_namespace($root_namespace);
-		$this->set_throw_errors($throw);
+		$this->setRootDirectory($root_directory);
+		$this->setRootNamespace($root_namespace);
+		$this->setThrowErrors($throw);
 	}
 	
 	/**
@@ -95,7 +95,7 @@ class Autoloader extends Base {
 	 * 
 	 * @param bool $throw Whether to throw exceptions.
 	 */
-	function set_throw_errors($throw) {
+	function setThrowErrors($throw) {
 		$this->throw_errors = !!$throw;
 	}
 	
@@ -104,7 +104,7 @@ class Autoloader extends Base {
 	 * 
 	 * @return bool
 	 */
-	function get_throw_errors() {
+	function getThrowErrors() {
 		return $this->throw_errors;
 	}
 	
@@ -113,8 +113,8 @@ class Autoloader extends Base {
 	 * 
 	 * @param string $directory The new root directory.
 	 */
-	function set_root_directory($directory) {
-		$this->root_directory = self::path_with_slash($directory);
+	function setRootDirectory($directory) {
+		$this->root_directory = self::pathWithSlash($directory);
 	}
 	
 	/**
@@ -122,7 +122,7 @@ class Autoloader extends Base {
 	 * 
 	 * @return string
 	 */
-	function get_root_directory() {
+	function getRootDirectory() {
 		return $this->root_directory;
 	}
 	
@@ -131,9 +131,9 @@ class Autoloader extends Base {
 	 * 
 	 * @param string $namespace The new root namespace.
 	 */
-	function set_root_namespace($namespace) {
+	function setRootNamespace($namespace) {
 		// Assert that the namespace ends with a backslash
-		if( $namespace[strlen($namespace) - 1] != '\\' )
+		if ($namespace[strlen($namespace) - 1] != '\\')
 			$namespace .= '\\';
 		
 		$this->root_namespace = $namespace;
@@ -144,7 +144,7 @@ class Autoloader extends Base {
 	 * 
 	 * @return string
 	 */
-	function get_root_namespace() {
+	function getRootNamespace() {
 		return $this->root_namespace;
 	}
 	
@@ -157,7 +157,7 @@ class Autoloader extends Base {
 	 * @param string $classname The class name to convert.
 	 * @return string
 	 */
-	static function classname_to_filename($classname) {
+	static function classnameToFilename($classname) {
 		return strtolower(preg_replace('/(?<=.)([A-Z])/', '_\\1', $classname));
 	}
 	
@@ -167,7 +167,7 @@ class Autoloader extends Base {
 	 * @param string $classname The name of the class to strip the namespace from.
 	 * @return string The stripped class name.
 	 */
-	private function strip_root_namespace($classname) {
+	private function stripRootNamespace($classname) {
 		$begin = substr($classname, 0, strlen($this->root_namespace));
 		
 		if ($begin == $this->root_namespace)
@@ -184,9 +184,9 @@ class Autoloader extends Base {
 	 * 
 	 * @param string $classname The name of the class to create the file path of.
 	 */
-	function create_path($classname) {
+	function createPath($classname) {
 		$namespaces = array_filter(explode('\\', $classname));
-		$dirs = array_map('self::classname_to_filename', $namespaces);
+		$dirs = array_map('self::classnameToFilename', $namespaces);
 		$path = $this->root_directory;
 		
 		if (count($dirs) > 1)
@@ -207,9 +207,9 @@ class Autoloader extends Base {
 	 * @return bool
 	 * @throws FileNotFoundError If the class file does not exist.
 	 */
-	function load_class($classname, $throw=null) {
-		$classname = $this->strip_root_namespace($classname);
-		$path = $this->create_path($classname);
+	function loadClass($classname, $throw=null) {
+		$classname = $this->stripRootNamespace($classname);
+		$path = $this->createPath($classname);
 		
 		if (!file_exists($path)) {
 			if ($throw || ($throw === null && $this->throw_errors))
@@ -229,7 +229,7 @@ class Autoloader extends Base {
 	 *                      the stack, instead of appending it.
 	 */
 	function register($prepend=false) {
-		spl_autoload_register(array($this, 'load_class'), true, $prepend);
+		spl_autoload_register(array($this, 'loadClass'), true, $prepend);
 	}
 }
 

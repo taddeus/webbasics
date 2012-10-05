@@ -11,11 +11,11 @@ class BaseExtension extends Base {
 }
 
 class BaseTest extends PHPUnit_Framework_TestCase {
-	function test_create() {
+	function testCreate() {
 		$this->assertEquals(BaseExtension::create('a', 'b'), new BaseExtension('a', 'b'));
 	}
 	
-	function test_asprintf() {
+	function testAsprintf() {
 		$this->assertEquals(webbasics\asprintf('%(foo) baz', array('foo' => 'bar')), 'bar baz');
 		$this->assertEquals(webbasics\asprintf('%(foo) baz %(foo)',
 			array('foo' => 'bar')), 'bar baz bar');
@@ -23,9 +23,9 @@ class BaseTest extends PHPUnit_Framework_TestCase {
 			array('foo' => 'bar', 'bar' => 'foobar')), 'foobar baz bar');
 	}
 	
-	function test_path_with_slash() {
-		$this->assertEquals(Base::path_with_slash('dirname'), 'dirname/');
-		$this->assertEquals(Base::path_with_slash('dirname/'), 'dirname/');
+	function testPathWithSlash() {
+		$this->assertEquals(Base::pathWithSlash('dirname'), 'dirname/');
+		$this->assertEquals(Base::pathWithSlash('dirname/'), 'dirname/');
 	}
 }
 

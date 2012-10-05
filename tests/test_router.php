@@ -24,29 +24,29 @@ class RouterTest extends PHPUnit_Framework_TestCase {
 		));
 	}
 	
-	function test_call_handler_success() {
-		$this->assertEquals(true, $this->router->call_handler('foo'));
-		$this->assertEquals('bar', $this->router->call_handler('bar'));
-		$this->assertEquals('baz', $this->router->call_handler('baz'));
-		$this->assertEquals('barbaz', $this->router->call_handler('bazbar'));
+	function testCallHandlerSuccess() {
+		$this->assertEquals(true, $this->router->callHandler('foo'));
+		$this->assertEquals('bar', $this->router->callHandler('bar'));
+		$this->assertEquals('baz', $this->router->callHandler('baz'));
+		$this->assertEquals('barbaz', $this->router->callHandler('bazbar'));
 	}
 	
-	function test_call_handler_failure() {
-		$this->assertFalse($this->router->call_handler('barfoo'));
+	function testCallHandlerFailure() {
+		$this->assertFalse($this->router->callHandler('barfoo'));
 	}
 	
-	function test_call_handler_skip() {
+	function testCallHandlerSkip() {
 		$foo = 'foo';
 		$bar = function() use (&$foo) { $foo = 'bar'; return false; };
 		$baz = function() { return; };
 		$router = new Router(array('.*' => $bar, 'baz' => $baz));
-		$router->call_handler('baz');
+		$router->callHandler('baz');
 		$this->assertEquals('bar', $foo);
 	}
 	
-	function test_add_route() {
-		$this->router->add_route('(foobar)', 'test_handler_arg');
-		$this->assertEquals('foobar', $this->router->call_handler('foobar'));
+	function testAddRoute() {
+		$this->router->addRoute('(foobar)', 'test_handler_arg');
+		$this->assertEquals('foobar', $this->router->callHandler('foobar'));
 	}
 }
 

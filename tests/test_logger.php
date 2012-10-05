@@ -11,138 +11,138 @@ define('LOGFILE', 'build/temp.log');
 class LoggerTest extends PHPUnit_Extensions_OutputTestCase {
 	function setUp() {
 		$this->logger = new Logger();
-		$this->logger->set_property('name', NAME);
-		$this->logger->set_format(FORMAT);
+		$this->logger->setProperty('name', NAME);
+		$this->logger->setFormat(FORMAT);
 
 		is_dir('build') || mkdir('build');
 	}
 
-	function assert_dumps($expected) {
+	function assertDumps($expected) {
 		$this->assertEquals($this->logger->dumps(), $expected);
 	}
 
-	function test_set_directory() {
-		$this->logger->set_directory('logs');
+	function testSetDirectory() {
+		$this->logger->setDirectory('logs');
 		$this->assertAttributeEquals('logs/', 'log_directory', $this->logger);
-		$this->logger->set_directory('logs/');
+		$this->logger->setDirectory('logs/');
 		$this->assertAttributeEquals('logs/', 'log_directory', $this->logger);
 	}
 
-	function test_set_format() {
-		$this->logger->set_format('foo');
+	function testSetFormat() {
+		$this->logger->setFormat('foo');
 		$this->assertAttributeEquals('foo', 'format', $this->logger);
 	}
 
-	function test_set_dump_format_success() {
-		$this->logger->set_dump_format('html');
+	function testSetDumpFormatSuccess() {
+		$this->logger->setDumpFormat('html');
 		$this->assertAttributeEquals('html', 'dump_format', $this->logger);
 	}
 
 	/**
 	 * @expectedException InvalidArgumentException
 	 */
-	function test_set_dump_format_failure() {
-		$this->logger->set_dump_format('foo');
+	function testSetDumpFormatFailure() {
+		$this->logger->setDumpFormat('foo');
 	}
 
-	function test_get_format() {
-		$this->assertEquals($this->logger->get_format(), FORMAT);
+	function testGetFormat() {
+		$this->assertEquals($this->logger->getFormat(), FORMAT);
 	}
 
-	function test_get_level() {
-		$this->assertEquals($this->logger->get_level(), Logger::WARNING);
-		$this->assertEquals($this->logger->get_level_name(), 'WARNING');
+	function testGetLevel() {
+		$this->assertEquals($this->logger->getLevel(), Logger::WARNING);
+		$this->assertEquals($this->logger->getLevelName(), 'WARNING');
 	}
 
 	/**
-	 * @depends test_get_level
+	 * @depends testGetLevel
 	 */
-	function test_set_level() {
-		$this->logger->set_level('info');
-		$this->assertEquals($this->logger->get_level(), Logger::INFO);
-		$this->logger->set_level('DEBUG');
-		$this->assertEquals($this->logger->get_level(), Logger::DEBUG);
-		$this->logger->set_level('WaRnInG');
-		$this->assertEquals($this->logger->get_level(), Logger::WARNING);
-		$this->logger->set_level(Logger::ERROR);
-		$this->assertEquals($this->logger->get_level(), Logger::ERROR);
+	function testSetLevel() {
+		$this->logger->setLevel('info');
+		$this->assertEquals($this->logger->getLevel(), Logger::INFO);
+		$this->logger->setLevel('DEBUG');
+		$this->assertEquals($this->logger->getLevel(), Logger::DEBUG);
+		$this->logger->setLevel('WaRnInG');
+		$this->assertEquals($this->logger->getLevel(), Logger::WARNING);
+		$this->logger->setLevel(Logger::ERROR);
+		$this->assertEquals($this->logger->getLevel(), Logger::ERROR);
 	}
 
-	function test_format() {
+	function testFormat() {
 		$this->logger->error('test message');
-		$this->assert_dumps('ERROR: test message');
+		$this->assertDumps('ERROR: test message');
 	}
 
-	function test_set_property() {
-		$this->logger->set_property('name', 'Logger');
-		$this->assertEquals($this->logger->get_formatted_property('name'), 'Logger');
+	function testSetProperty() {
+		$this->logger->setProperty('name', 'Logger');
+		$this->assertEquals($this->logger->getFormattedProperty('name'), 'Logger');
 	}
 
 	/**
-	 * @depends test_format
+	 * @depends testFormat
 	 */
-	function test_clear() {
+	function testClear() {
 		$this->logger->warning('test message');
 		$this->logger->clear();
-		$this->assert_dumps('');
+		$this->assertDumps('');
 	}
 
 	/**
-	 * @depends test_set_level
-	 * @depends test_clear
+	 * @depends testSetLevel
+	 * @depends testClear
 	 */
-	function test_process_level() {
+	function testProcessLevel() {
 		$this->logger->info('test message');
-		$this->assert_dumps('');
+		$this->assertDumps('');
 		$this->logger->warning('test message');
-		$this->assert_dumps('WARNING: test message');
+		$this->assertDumps('WARNING: test message');
 		$this->logger->critical('test message');
-		$this->assert_dumps("WARNING: test message\nCRITICAL: test message");
+		$this->assertDumps("WARNING: test message\nCRITICAL: test message");
 		$this->logger->clear();
-		$this->logger->set_level('debug');
+		$this->logger->setLevel('debug');
 		$this->logger->debug('test message');
-		$this->assert_dumps('DEBUG: test message');
+		$this->assertDumps('DEBUG: test message');
 	}
 
-	function test_get_formatted_property() {
-		$this->assertEquals($this->logger->get_formatted_property('name'), NAME);
-		$this->assertEquals($this->logger->get_formatted_property('loglevel'), 'WARNING');
+	function testGetFormattedProperty() {
+		$this->assertEquals($this->logger->getFormattedProperty('name'), NAME);
+		$this->assertEquals($this->logger->getFormattedProperty('loglevel'), 'WARNING');
 		$this->assertRegExp('/^\d{2}-\d{2}-\d{4}$/',
-			$this->logger->get_formatted_property('date'));
+			$this->logger->getFormattedProperty('date'));
 		$this->assertRegExp('/^\d{2}-\d{2}-\d{4} \d{2}:\d{2}:\d{2}$/',
-			$this->logger->get_formatted_property('datetime'));
+			$this->logger->getFormattedProperty('datetime'));
 		$this->assertRegExp('/^\d{2}:\d{2}:\d{2}$/',
-			$this->logger->get_formatted_property('time'));
+			$this->logger->getFormattedProperty('time'));
 		$this->setExpectedException('\InvalidArgumentException');
-		$this->logger->get_formatted_property('foo');
+		$this->logger->getFormattedProperty('foo');
 	}
 
-	function test_dumps_property_format() {
+	function testDumpsPropertyFormat() {
 		$this->logger->warning('test message');
-		$this->logger->set_format('%(name): %(level): %(message)');
-		$this->assert_dumps(NAME.': WARNING: test message');
+		$this->logger->setFormat('%(name): %(level): %(message)');
+		$this->assertDumps(NAME.': WARNING: test message');
 	}
 
 	/**
-	 * @depends test_process_level
+	 * @depends testProcessLevel
 	 */
-	function test_dump_plain() {
+	function testDumpPlain() {
 		$this->logger->warning('test message');
 		$this->expectOutputString('WARNING: test message');
 		$this->logger->dump();
 	}
 
 	/**
-	 * @depends test_process_level
+	 * @depends testProcessLevel
 	 */
-	function test_dump_html() {
+	function testDumpHtml() {
 		$this->logger->warning('test message');
-		$this->logger->set_dump_format('html');
+		$this->logger->setDumpFormat('html');
 		$this->expectOutputString('<strong>Log:</strong><br /><pre>WARNING: test message</pre>');
 		$this->logger->dump();
 	}
 
-	function test_save() {
+	function testSave() {
 		$this->logger->warning('test message');
 		$this->logger->save(LOGFILE);
 		$this->assertStringEqualsFile(LOGFILE, 'WARNING: test message');
@@ -152,30 +152,30 @@ class LoggerTest extends PHPUnit_Extensions_OutputTestCase {
 		unlink(LOGFILE);
 	}
 
-	function find_logfile() {
+	function findLogfile() {
 		$files = scandir(LOGDIR);
 		$this->assertEquals(3, count($files));
 		return $files[2];
 	}
 
 	/**
-	 * @depends test_save
+	 * @depends testSave
 	 */
-	function test_dump_file_regular() {
-		$this->logger->set_directory(LOGDIR);
-		$this->logger->set_dump_format('file');
+	function testDumpFileRegular() {
+		$this->logger->setDirectory(LOGDIR);
+		$this->logger->setDumpFormat('file');
 
 		$this->logger->warning('test message');
 		$this->logger->dump();
-		$filename = $this->find_logfile();
+		$filename = $this->findLogfile();
 		$this->assertStringEqualsFile(LOGDIR . $filename, 'WARNING: test message');
 		unlink(LOGDIR . $filename);
 		$this->assertRegExp('/^log_\d{2}-\d{2}-\d{4}_\d{2}-\d{2}-\d{2}.log$/', $filename);
 	}
 
-	function test_handle_exception() {
-		$this->logger->set_dump_format('none');
-		$this->logger->handle_exception(new RuntimeException('test message'));
+	function testHandleException() {
+		$this->logger->setDumpFormat('none');
+		$this->logger->handleException(new RuntimeException('test message'));
 		$this->assertNotEquals($this->logger->dumps(), '');
 	}
 }

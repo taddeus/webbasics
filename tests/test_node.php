@@ -10,90 +10,90 @@ class NodeTest extends PHPUnit_Framework_TestCase {
 		$this->root = new Node('test node');
 	}
 	
-	function test_get_id() {
-		$this->assertEquals($this->root->get_id(), 1);
-		$this->assertEquals(Node::create('')->get_id(), 2);
+	function testGetId() {
+		$this->assertEquals($this->root->getId(), 1);
+		$this->assertEquals(Node::create('')->getId(), 2);
 	}
 	
-	function test_get_name() {
-		$this->assertEquals($this->root->get_name(), 'test node');
-		$this->assertEquals(Node::create('second node')->get_name(), 'second node');
+	function testGetName() {
+		$this->assertEquals($this->root->getName(), 'test node');
+		$this->assertEquals(Node::create('second node')->getName(), 'second node');
 	}
 	
-	function test_get_parent() {
-		$this->assertNull($this->root->get_parent());
-		$this->assertSame(Node::create('', $this->root)->get_parent(), $this->root);
+	function testGetParent() {
+		$this->assertNull($this->root->getParent());
+		$this->assertSame(Node::create('', $this->root)->getParent(), $this->root);
 	}
 	
-	function test_is() {
+	function testIs() {
 		$mirror = $this->root;
 		$this->assertTrue($mirror->is($this->root));
 		$this->assertFalse(Node::create('')->is($this->root));
 	}
 	
-	function test_is_root() {
-		$this->assertTrue($this->root->is_root());
-		$this->assertFalse(Node::create('', $this->root)->is_root());
+	function testIsRoot() {
+		$this->assertTrue($this->root->isRoot());
+		$this->assertFalse(Node::create('', $this->root)->isRoot());
 	}
 	
-	function test_add_child() {
+	function testAddChild() {
 		$node = new Node('');
-		$this->root->add_child($node);
+		$this->root->addChild($node);
 		$this->assertAttributeEquals(array($node), 'children', $this->root);
-		$this->assertSame($node->get_parent(), $this->root);
+		$this->assertSame($node->getParent(), $this->root);
 	}
 	
 	/**
-	 * @depends test_add_child
+	 * @depends testAddChild
 	 */
-	function test_get_children() {
-		$this->assertEquals($this->root->get_children(), array());
+	function testGetChildren() {
+		$this->assertEquals($this->root->getChildren(), array());
 		$node = new Node('');
-		$this->root->add_child($node);
-		$this->assertSame($this->root->get_children(), array($node));
+		$this->root->addChild($node);
+		$this->assertSame($this->root->getChildren(), array($node));
 	}
 	
-	function test_add_child_no_set_parent() {
+	function testAddChildNoSetParent() {
 		$node = new Node('');
-		$this->root->add_child($node, false);
+		$this->root->addChild($node, false);
 		$this->assertAttributeEquals(array($node), 'children', $this->root);
-		$this->assertNull($node->get_parent());
+		$this->assertNull($node->getParent());
 	}
 	
 	/**
-	 * @depends test_add_child
+	 * @depends testAddChild
 	 */
-	function test_is_leaf() {
+	function testIsLeaf() {
 		$node = new Node('');
-		$this->root->add_child($node);
-		$this->assertTrue($node->is_leaf());
-		$this->assertFalse($this->root->is_leaf());
+		$this->root->addChild($node);
+		$this->assertTrue($node->isLeaf());
+		$this->assertFalse($this->root->isLeaf());
 	}
 	
 	/**
-	 * @depends test_add_child
+	 * @depends testAddChild
 	 */
-	function test_add() {
+	function testAdd() {
 		$node = $this->root->add('name', array('foo' => 'bar'));
-		$this->assertEquals($node->get_name(), 'name');
+		$this->assertEquals($node->getName(), 'name');
 		$this->assertEquals($node->get('foo'), 'bar');
-		$this->assertSame($node->get_parent(), $this->root);
+		$this->assertSame($node->getParent(), $this->root);
 	}
 	
 	/**
-	 * @depends test_add
+	 * @depends testAdd
 	 */
-	function test_remove_child() {
+	function testRemoveChild() {
 		$node1 = $this->root->add('name', array('foo' => 'bar'));
 		$node2 = $this->root->add('name', array('foo' => 'bar'));
-		$this->root->remove_child($node2);
+		$this->root->removeChild($node2);
 		$this->assertAttributeSame(array($node1), 'children', $this->root);
 	}
 	
 	/**
-	 * @depends test_remove_child
+	 * @depends testRemoveChild
 	 */
-	function test_remove_leaf() {
+	function testRemoveLeaf() {
 		$node1 = $this->root->add('name', array('foo' => 'bar'));
 		$node2 = $this->root->add('name', array('foo' => 'bar'));
 		$node1->remove();
@@ -101,39 +101,39 @@ class NodeTest extends PHPUnit_Framework_TestCase {
 	}
 	
 	/**
-	 * @depends test_remove_leaf
+	 * @depends testRemoveLeaf
 	 */
-	function test_remove_node() {
+	function testRemoveNode() {
 		$node = $this->root->add('node');
 		$leaf = $node->add('leaf');
 		$node->remove();
 		$this->assertAttributeEquals(array(), 'children', $this->root);
-		$this->assertNull($leaf->get_parent());
+		$this->assertNull($leaf->getParent());
 	}
 	
 	/**
-	 * @depends test_remove_child
+	 * @depends testRemoveChild
 	 * @expectedException \RuntimeException
 	 */
-	function test_remove_root() {
+	function testRemoveRoot() {
 		$node1 = $this->root->add('name', array('foo' => 'bar'));
 		$node2 = $this->root->add('name', array('foo' => 'bar'));
 		$this->root->remove();
 		$this->assertAttributeSame(array($node2), 'children', $this->root);
 	}
 	
-	function test_set_single() {
+	function testSetSingle() {
 		$this->root->set('foo', 'bar');
 		$this->assertAttributeEquals(array('foo' => 'bar'), 'variables', $this->root);
 		$this->root->set('bar', 'baz');
 		$this->assertAttributeEquals(array('foo' => 'bar', 'bar' => 'baz'), 'variables', $this->root);
 	}
 	
-	function test_set_return() {
+	function testSetReturn() {
 		$this->assertSame($this->root->set('foo', 'bar'), $this->root);
 	}
 	
-	function test_set_multiple() {
+	function testSetMultiple() {
 		$this->root->set(array('foo' => 'bar'));
 		$this->assertAttributeEquals(array('foo' => 'bar'), 'variables', $this->root);
 		$this->root->set(array('bar' => 'baz'));
@@ -141,7 +141,7 @@ class NodeTest extends PHPUnit_Framework_TestCase {
 	}
 	
 	/**
-	 * @depends test_set_single
+	 * @depends testSetSingle
 	 */
 	function test___set() {
 		$this->root->foo = 'bar';
@@ -151,16 +151,16 @@ class NodeTest extends PHPUnit_Framework_TestCase {
 	}
 	
 	/**
-	 * @depends test_set_multiple
+	 * @depends testSetMultiple
 	 */
-	function test_get_direct() {
+	function testGetDirect() {
 		$this->root->set(array('foo' => 'bar', 'bar' => 'baz'));
 		$this->assertEquals($this->root->get('foo'), 'bar');
 		$this->assertEquals($this->root->get('bar'), 'baz');
 	}
 	
 	/**
-	 * @depends test_get_direct
+	 * @depends testGetDirect
 	 */
 	function test___get() {
 		$this->root->set(array('foo' => 'bar', 'bar' => 'baz'));
@@ -169,22 +169,22 @@ class NodeTest extends PHPUnit_Framework_TestCase {
 	}
 	
 	/**
-	 * @depends test_set_single
+	 * @depends testSetSingle
 	 */
-	function test_get_ancestor() {
+	function testGetAncestor() {
 		$this->root->set('foo', 'bar');
 		$node = $this->root->add('');
 		$this->assertEquals($node->get('foo'), 'bar');
 	}
 	
-	function test_get_failure() {
+	function testGetFailure() {
 		$this->assertNull($this->root->get('foo'));
 	}
 	
 	/**
-	 * @depends test_get_name
+	 * @depends testGetName
 	 */
-	function test_find() {
+	function testFind() {
 		$node1 = $this->root->add('foo');
 		$node2 = $this->root->add('bar');
 		$node3 = $this->root->add('foo');
@@ -192,34 +192,34 @@ class NodeTest extends PHPUnit_Framework_TestCase {
 	}
 	
 	/**
-	 * @depends test_set_multiple
+	 * @depends testSetMultiple
 	 */
-	function test_copy_simple() {
+	function testCopySimple() {
 		$copy = $this->root->copy();
 		$this->assertEquals($this->root, $copy);
 		$this->assertNotSame($this->root, $copy);
 	}
 	
 	/**
-	 * @depends test_copy_simple
+	 * @depends testCopySimple
 	 */
-	function test_copy_shallow() {
+	function testCopyShallow() {
 		$child = $this->root->add('');
 		$copy = $this->root->copy();
 		$this->assertAttributeSame(array($child), 'children', $copy);
 	}
 	
 	/**
-	 * @depends test_get_children
-	 * @depends test_copy_simple
+	 * @depends testGetChildren
+	 * @depends testCopySimple
 	 */
-	function test_copy_deep() {
+	function testCopyDeep() {
 		$child = $this->root->add('foo');
 		$copy = $this->root->copy(true);
-		$copy_children = $copy->get_children();
+		$copy_children = $copy->getChildren();
 		$child_copy = reset($copy_children);
-		$this->assertNotSame($copy_children, $this->root->get_children());
-		$this->assertSame($child_copy->get_parent(), $copy);
+		$this->assertNotSame($copy_children, $this->root->getChildren());
+		$this->assertSame($child_copy->getParent(), $copy);
 	}
 }
 

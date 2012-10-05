@@ -35,34 +35,34 @@ class Logger extends Base {
 	private $dump_format = 'plain';
 	private $log_directory = '';
 
-	function set_directory($directory) {
-		$this->log_directory = self::path_with_slash($directory);
+	function setDirectory($directory) {
+		$this->log_directory = self::pathWithSlash($directory);
 	}
 
-	function set_dump_format($format) {
+	function setDumpFormat($format) {
 		if (!in_array($format, self::$allowed_dump_formats))
 			throw new \InvalidArgumentException(sprintf('', $format));
 
 		$this->dump_format = $format;
 	}
 
-	function set_format($format) {
+	function setFormat($format) {
 		$this->format = (string)$format;
 	}
 
-	function get_format() {
+	function getFormat() {
 		return $this->format;
 	}
 
-	function get_level() {
+	function getLevel() {
 		return $this->level;
 	}
 
-	function get_level_name() {
+	function getLevelName() {
 		return self::$level_names[$this->level];
 	}
 
-	function set_level($level) {
+	function setLevel($level) {
 		if (is_string($level)) {
 			$level = strtoupper($level);
 
@@ -78,7 +78,7 @@ class Logger extends Base {
 		$this->level = $level;
 	}
 
-	function set_property($name, $value) {
+	function setProperty($name, $value) {
 		$this->properties[$name] = (string)$value;
 	}
 
@@ -133,7 +133,7 @@ class Logger extends Base {
 					if ($name == 'level')
 						return Logger::$level_names[$level];
 
-					return $logger->get_formatted_property($matches[1]);
+					return $logger->getFormattedProperty($matches[1]);
 				},
 				$this->format
 			);
@@ -169,7 +169,7 @@ class Logger extends Base {
 		file_put_contents($this->log_directory . $path, $this->dumps());
 	}
 
-	function handle_exception(\Exception $e) {
+	function handleException(\Exception $e) {
 		if( $e === null )
 			return;
 
@@ -179,17 +179,17 @@ class Logger extends Base {
 		$this->dump('error');
 	}
 
-	function set_as_exception_handler() {
+	function setAsExceptionHandler() {
 		set_exception_handler(array($this, 'handle_exception'));
 	}
 
-	function get_formatted_property($property) {
+	function getFormattedProperty($property) {
 		if (isset($this->properties[$property]))
 			return $this->properties[$property];
 
 		switch( $property ) {
 			case 'loglevel':
-				return $this->get_level_name();
+				return $this->getLevelName();
 			case 'date':
 				return strftime('%d-%m-%Y');
 			case 'time':

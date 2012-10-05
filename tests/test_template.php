@@ -24,10 +24,10 @@ class TemplateTest extends PHPUnit_Framework_TestCase {
 	const INTERNATIONALIZATION_STRING = 'Iñtërnâtiônàlizætiøn';
 	
 	/**
-	 * @depends test_add_root_success
+	 * @depends testAddRootSuccess
 	 */
 	function setUp() {
-		Template::set_root(TEMPLATES_DIR);
+		Template::setRoot(TEMPLATES_DIR);
 		$this->tpl = new Template('foo');
 		$this->data = new Node();
 		
@@ -54,359 +54,359 @@ class TemplateTest extends PHPUnit_Framework_TestCase {
 	 * @expectedException webbasics\FileNotFoundError
 	 * @expectedExceptionMessage Directory "non_existing_folder/" does not exist.
 	 */
-	function test_add_root_failure() {
-		Template::add_root('non_existing_folder');
+	function testAddRootFailure() {
+		Template::addRoot('non_existing_folder');
 	}
 	
-	function assert_include_path_equals($expected) {
+	function assertIncludePathEquals($expected) {
 		$include_path = new ReflectionProperty('webbasics\Template', 'include_path');
 		$include_path->setAccessible(true);
 		$this->assertEquals($expected, $include_path->getValue());
 	}
 	
-	function test_clear_include_path() {
-		Template::clear_include_path();
-		$this->assert_include_path_equals(array());
+	function testClearIncludePath() {
+		Template::clearIncludePath();
+		$this->assertIncludePathEquals(array());
 	}
 	
 	/**
-	 * @depends test_clear_include_path
+	 * @depends testClearIncludePath
 	 */
-	function test_add_root_success() {
-		Template::clear_include_path();
-		Template::add_root(TEMPLATES_DIR);
-		$this->assert_include_path_equals(array(TEMPLATES_DIR));
-		Template::add_root('tests/_files');
-		$this->assert_include_path_equals(array(TEMPLATES_DIR, 'tests/_files/'));
+	function testAddRootSuccess() {
+		Template::clearIncludePath();
+		Template::addRoot(TEMPLATES_DIR);
+		$this->assertIncludePathEquals(array(TEMPLATES_DIR));
+		Template::addRoot('tests/_files');
+		$this->assertIncludePathEquals(array(TEMPLATES_DIR, 'tests/_files/'));
 	}
 	
 	/**
-	 * @depends test_add_root_success
+	 * @depends testAddRootSuccess
 	 */
-	function test_set_root() {
-		Template::clear_include_path();
-		Template::add_root(TEMPLATES_DIR);
-		Template::add_root('tests/_files');
-		Template::set_root(TEMPLATES_DIR);
-		$this->assert_include_path_equals(array(TEMPLATES_DIR));
+	function testSetRoot() {
+		Template::clearIncludePath();
+		Template::addRoot(TEMPLATES_DIR);
+		Template::addRoot('tests/_files');
+		Template::setRoot(TEMPLATES_DIR);
+		$this->assertIncludePathEquals(array(TEMPLATES_DIR));
 	}
 	
 	/**
 	 * @expectedException RuntimeException
 	 */
-	function test_non_existing_template() {
+	function testNonExistingTemplate() {
 		$bar = new Template('bar');
 	}
 	
-	function test_other_root() {
-		Template::add_root('tests/_files/other_templates');
+	function testOtherRoot() {
+		Template::addRoot('tests/_files/other_templates');
 		new Template('bar');
 	}
 	
-	function test_get_path() {
-		$this->assertEquals(TEMPLATES_DIR.'foo.tpl', $this->tpl->get_path());
+	function testGetPath() {
+		$this->assertEquals(TEMPLATES_DIR.'foo.tpl', $this->tpl->getPath());
 	}
 	
-	function get_property($object, $property_name) {
+	function getProperty($object, $property_name) {
 		$rp = new ReflectionProperty($object, $property_name);
 		$rp->setAccessible(true);
 		return $rp->getValue($object);
 	}
 	
-	static function strip_newlines($html) {
+	static function stripNewlines($html) {
 		return str_replace("\r\n", "\n", $html);
 	}
 	
-	function assert_is_html_node($node, $content) {
-		$this->assertEquals('html', $node->get_name());
-		$this->assertEquals($content, self::strip_newlines($node->get('content')));
-		$this->assertEquals(array(), $node->get_children());
+	function assertIsHtmlNode($node, $content) {
+		$this->assertEquals('html', $node->getName());
+		$this->assertEquals($content, self::stripNewlines($node->get('content')));
+		$this->assertEquals(array(), $node->getChildren());
 	}
 	
-	function assert_is_block_node($node, $block_name, $child_count) {
-		$this->assertEquals('block', $node->get_name());
+	function assertIsBlockNode($node, $block_name, $child_count) {
+		$this->assertEquals('block', $node->getName());
 		$this->assertSame($block_name, $node->get('name'));
 		$this->assertNull($node->get('content'));
-		$this->assertEquals($child_count, count($node->get_children()));
+		$this->assertEquals($child_count, count($node->getChildren()));
 	}
 	
-	function assert_is_exp_node($node, $brackets_content) {
-		$this->assertEquals('expression', $node->get_name());
+	function assertIsExpNode($node, $brackets_content) {
+		$this->assertEquals('expression', $node->getName());
 		$this->assertEquals($brackets_content, $node->get('content'));
-		$this->assertEquals(array(), $node->get_children());
+		$this->assertEquals(array(), $node->getChildren());
 	}
 	
-	function test_parse_blocks_simple() {
-		$root_block = $this->get_property($this->tpl, 'root_block');
-		$this->assert_is_block_node($root_block, null, 1);
+	function testParseBlocksSimple() {
+		$root_block = $this->getProperty($this->tpl, 'root_block');
+		$this->assertIsBlockNode($root_block, null, 1);
 		
-		list($child) = $root_block->get_children();
-		$this->assert_is_html_node($child, 'test');
+		list($child) = $root_block->getChildren();
+		$this->assertIsHtmlNode($child, 'test');
 	}
 	
 	/**
-	 * @depends test_parse_blocks_simple
+	 * @depends testParseBlocksSimple
 	 */
-	function test_parse_blocks_blocks() {
+	function testParseBlocksBlocks() {
 		$tpl = new Template('blocks');
-		$root_block = $this->get_property($tpl, 'root_block');
-		$this->assert_is_block_node($root_block, null, 2);
+		$root_block = $this->getProperty($tpl, 'root_block');
+		$this->assertIsBlockNode($root_block, null, 2);
 		
-		list($before, $foo) = $root_block->get_children();
-		$this->assert_is_html_node($before, '');
-		$this->assert_is_block_node($foo, 'foo', 3);
+		list($before, $foo) = $root_block->getChildren();
+		$this->assertIsHtmlNode($before, '');
+		$this->assertIsBlockNode($foo, 'foo', 3);
 		
-		list($foofoo, $bar, $foobaz) = $foo->get_children();
-		$this->assert_is_html_node($foofoo, "\nfoofoo\n\t");
-		$this->assert_is_block_node($bar, 'bar', 1);
-		$this->assert_is_html_node($foobaz, "\nfoobaz\n");
+		list($foofoo, $bar, $foobaz) = $foo->getChildren();
+		$this->assertIsHtmlNode($foofoo, "\nfoofoo\n\t");
+		$this->assertIsBlockNode($bar, 'bar', 1);
+		$this->assertIsHtmlNode($foobaz, "\nfoobaz\n");
 		
-		list($foobar) = $bar->get_children();
-		$this->assert_is_html_node($foobar, "\n\tfoobar\n\t");
+		list($foobar) = $bar->getChildren();
+		$this->assertIsHtmlNode($foobar, "\n\tfoobar\n\t");
 	}
 	
 	/**
-	 * @depends test_parse_blocks_blocks
+	 * @depends testParseBlocksBlocks
 	 * @expectedException webbasics\ParseError
 	 * @expectedExceptionMessage Parse error in file tests/_files/templates/unexpected_end.tpl, line 5: unexpected {end}
 	 */
-	function test_parse_blocks_unexpected_end() {
+	function testParseBlocksUnexpectedEnd() {
 		new Template('unexpected_end');
 	}
 	
 	/**
-	 * @depends test_parse_blocks_blocks
+	 * @depends testParseBlocksBlocks
 	 * @expectedException webbasics\ParseError
 	 * @expectedExceptionMessage Parse error in file tests/_files/templates/missing_end.tpl, line 6: missing {end}
 	 */
-	function test_parse_blocks_missing_end() {
+	function testParseBlocksMissingEnd() {
 		new Template('missing_end');
 	}
 	
 	/**
-	 * @depends test_parse_blocks_simple
+	 * @depends testParseBlocksSimple
 	 */
-	function test_parse_blocks_variables() {
+	function testParseBlocksVariables() {
 		$tpl = new Template('variables');
-		$root_block = $this->get_property($tpl, 'root_block');
-		$this->assert_is_block_node($root_block, null, 5);
+		$root_block = $this->getProperty($tpl, 'root_block');
+		$this->assertIsBlockNode($root_block, null, 5);
 		
-		list($foo, $foobar, $bar, $foobaz, $baz) = $root_block->get_children();
-		$this->assert_is_html_node($foo, "foo\n");
-		$this->assert_is_exp_node($foobar, '$foobar');
-		$this->assert_is_html_node($bar, "\nbar\n");
-		$this->assert_is_exp_node($foobaz, 'strtolower($foobaz)');
-		$this->assert_is_html_node($baz, "\nbaz\n{\nno_variable\n}");
+		list($foo, $foobar, $bar, $foobaz, $baz) = $root_block->getChildren();
+		$this->assertIsHtmlNode($foo, "foo\n");
+		$this->assertIsExpNode($foobar, '$foobar');
+		$this->assertIsHtmlNode($bar, "\nbar\n");
+		$this->assertIsExpNode($foobaz, 'strtolower($foobaz)');
+		$this->assertIsHtmlNode($baz, "\nbaz\n{\nno_variable\n}");
 	}
 	
 	/**
-	 * @depends test_parse_blocks_blocks
-	 * @depends test_parse_blocks_variables
+	 * @depends testParseBlocksBlocks
+	 * @depends testParseBlocksVariables
 	 */
-	function test_parse_blocks_full() {
+	function testParseBlocksFull() {
 		$tpl = new Template('full');
-		$root_block = $this->get_property($tpl, 'root_block');
-		$this->assert_is_block_node($root_block, null, 3);
+		$root_block = $this->getProperty($tpl, 'root_block');
+		$this->assertIsBlockNode($root_block, null, 3);
 		
-		list($bar, $foo, $baz) = $root_block->get_children();
-		$this->assert_is_html_node($bar, "bar\n");
-		$this->assert_is_block_node($foo, 'foo', 5);
-		$this->assert_is_html_node($baz, "\nbaz");
+		list($bar, $foo, $baz) = $root_block->getChildren();
+		$this->assertIsHtmlNode($bar, "bar\n");
+		$this->assertIsBlockNode($foo, 'foo', 5);
+		$this->assertIsHtmlNode($baz, "\nbaz");
 		
-		list($foofoo, $bar, $first_space, $foobaz, $second_space) = $foo->get_children();
-		$this->assert_is_html_node($foofoo, "\nfoofoo\n\t");
-		$this->assert_is_block_node($bar, 'bar', 3);
-		$this->assert_is_html_node($first_space, "\n");
-		$this->assert_is_exp_node($foobaz, 'strtolower($foobaz)');
-		$this->assert_is_html_node($second_space, "\n");
+		list($foofoo, $bar, $first_space, $foobaz, $second_space) = $foo->getChildren();
+		$this->assertIsHtmlNode($foofoo, "\nfoofoo\n\t");
+		$this->assertIsBlockNode($bar, 'bar', 3);
+		$this->assertIsHtmlNode($first_space, "\n");
+		$this->assertIsExpNode($foobaz, 'strtolower($foobaz)');
+		$this->assertIsHtmlNode($second_space, "\n");
 		
-		list($space_before, $foobar, $space_after) = $bar->get_children();
-		$this->assert_is_html_node($space_before, "\n\t");
-		$this->assert_is_exp_node($foobar, '$foobar');
-		$this->assert_is_html_node($space_after, "\n\t");
+		list($space_before, $foobar, $space_after) = $bar->getChildren();
+		$this->assertIsHtmlNode($space_before, "\n\t");
+		$this->assertIsExpNode($foobar, '$foobar');
+		$this->assertIsHtmlNode($space_after, "\n\t");
 	}
 	
-	function evaluate_expression() {
+	function evaluateExpression() {
 		$args = func_get_args();
-		$eval = new ReflectionMethod('webbasics\Template', 'evaluate_expression');
+		$eval = new ReflectionMethod('webbasics\Template', 'evaluateExpression');
 		$eval->setAccessible(true);
 		return $eval->invokeArgs(null, $args);
 	}
 	
-	function assert_evaluates($expected, $expression) {
-		$this->assertEquals($expected, $this->evaluate_expression($expression, $this->data));
+	function assertEvaluates($expected, $expression) {
+		$this->assertEquals($expected, $this->evaluateExpression($expression, $this->data));
 	}
 	
 	/** 
 	 * @expectedException \UnexpectedValueException
 	 */
-	function test_evaluate_variable_attribute_null() {
-		$this->evaluate_expression('$foobarbaz.foo', $this->data);
+	function testEvaluateVariableAttributeNull() {
+		$this->evaluateExpression('$foobarbaz.foo', $this->data);
 	}
 	
 	/** 
 	 * @expectedException \UnexpectedValueException
 	 */
-	function test_evaluate_variable_attribute_no_such_attribute() {
-		$this->evaluate_expression('$object.foobar', $this->data);
+	function testEvaluateVariableAttributeNoSuchAttribute() {
+		$this->evaluateExpression('$object.foobar', $this->data);
 	}
 	
 	/** 
 	 * @expectedException \UnexpectedValueException
 	 */
-	function test_evaluate_variable_attribute_no_array_or_object() {
-		$this->evaluate_expression('$foo.bar', $this->data);
+	function testEvaluateVariableAttributeNoArrayOrObject() {
+		$this->evaluateExpression('$foo.bar', $this->data);
 	}
 	
 	/** 
 	 * @expectedException \UnexpectedValueException
 	 */
-	function test_evaluate_variable_method_null() {
-		$this->evaluate_expression('$foobarbaz.foo()', $this->data);
+	function testEvaluateVariableMethodNull() {
+		$this->evaluateExpression('$foobarbaz.foo()', $this->data);
 	}
 	
 	/** 
 	 * @expectedException \BadMethodCallException
 	 */
-	function test_evaluate_variable_method_no_such_method() {
-		$this->evaluate_expression('$object.foo()', $this->data);
+	function testEvaluateVariableMethodNoSuchMethod() {
+		$this->evaluateExpression('$object.foo()', $this->data);
 	}
 	
 	/** 
 	 * @expectedException \BadMethodCallException
 	 */
-	function test_evaluate_variable_method_no_object() {
-		$this->evaluate_expression('$foo.bar()', $this->data);
+	function testEvaluateVariableMethodNoObject() {
+		$this->evaluateExpression('$foo.bar()', $this->data);
 	}
 	
-	function test_evaluate_variable_success() {
-		$this->assert_evaluates('bar', '$array.foo');
-		$this->assert_evaluates('bar', '$foo');
-		$this->assert_evaluates('baz', '$bar');
-		$this->assert_evaluates('bar', '$object.foo');
-		$this->assert_evaluates('baz', '$object.bar');
-		$this->assert_evaluates('foobar', '$object.baz()');
-	}
-	
-	/** 
-	 * @depends test_evaluate_variable_success
-	 */
-	function test_evaluate_variable_escape() {
-		$this->assert_evaluates('&lt;script&gt;&lt;/script&gt;', '$html');
-		$this->assert_evaluates('Iñtërnâtiônàlizætiøn', '$internationalization');
-		//$this->assert_evaluates('I&ntilde;t&euml;rn&acirc;ti&ocirc;n&agrave;liz&aelig;ti&oslash;n', '$internationalization');
+	function testEvaluateVariableSuccess() {
+		$this->assertEvaluates('bar', '$array.foo');
+		$this->assertEvaluates('bar', '$foo');
+		$this->assertEvaluates('baz', '$bar');
+		$this->assertEvaluates('bar', '$object.foo');
+		$this->assertEvaluates('baz', '$object.bar');
+		$this->assertEvaluates('foobar', '$object.baz()');
 	}
 	
 	/** 
-	 * @depends test_evaluate_variable_success
+	 * @depends testEvaluateVariableSuccess
 	 */
-	function test_evaluate_variable_noescape() {
-		$this->assert_evaluates('<script></script>', '$$html');
-		$this->assert_evaluates('Iñtërnâtiônàlizætiøn', '$$internationalization');
+	function testEvaluateVariableEscape() {
+		$this->assertEvaluates('&lt;script&gt;&lt;/script&gt;', '$html');
+		$this->assertEvaluates('Iñtërnâtiônàlizætiøn', '$internationalization');
+		//$this->assertEvaluates('I&ntilde;t&euml;rn&acirc;ti&ocirc;n&agrave;liz&aelig;ti&oslash;n', '$internationalization');
 	}
 	
-	function test_evaluate_constant() {
-		$this->assert_evaluates('foobar_const', 'FOOBAR');
-		$this->assert_evaluates('{NON_DEFINED_CONST}', 'NON_DEFINED_CONST');
+	/** 
+	 * @depends testEvaluateVariableSuccess
+	 */
+	function testEvaluateVariableNoescape() {
+		$this->assertEvaluates('<script></script>', '$$html');
+		$this->assertEvaluates('Iñtërnâtiônàlizætiøn', '$$internationalization');
 	}
 	
-	function test_evaluate_no_expression() {
-		$this->assert_evaluates('{foo}', 'foo');
+	function testEvaluateConstant() {
+		$this->assertEvaluates('foobar_const', 'FOOBAR');
+		$this->assertEvaluates('{NON_DEFINED_CONST}', 'NON_DEFINED_CONST');
 	}
 	
-	function test_evaluate_condition_if() {
-		$this->assert_evaluates('bar', '$true?bar');
-		$this->assert_evaluates('', '$false?bar');
+	function testEvaluateNoExpression() {
+		$this->assertEvaluates('{foo}', 'foo');
 	}
 	
-	function test_evaluate_condition_if_else() {
-		$this->assert_evaluates('bar', '$true?bar:baz');
-		$this->assert_evaluates('baz', '$false?bar:baz');
+	function testEvaluateConditionIf() {
+		$this->assertEvaluates('bar', '$true?bar');
+		$this->assertEvaluates('', '$false?bar');
+	}
+	
+	function testEvaluateConditionIfElse() {
+		$this->assertEvaluates('bar', '$true?bar:baz');
+		$this->assertEvaluates('baz', '$false?bar:baz');
 	}
 	
 	/**
-	 * @depends test_evaluate_condition_if
-	 * @depends test_evaluate_condition_if_else
+	 * @depends testEvaluateConditionIf
+	 * @depends testEvaluateConditionIfElse
 	 */
-	function test_evaluate_condition_extended() {
-		$this->assert_evaluates(' bar ', '$true? bar : baz');
-		$this->assert_evaluates(' baz', '$false? bar : baz');
+	function testEvaluateConditionExtended() {
+		$this->assertEvaluates(' bar ', '$true? bar : baz');
+		$this->assertEvaluates(' baz', '$false? bar : baz');
 		
-		$this->assert_evaluates(' bar ', '$true ? bar : baz');
-		$this->assert_evaluates(' baz', '$false ? bar : baz');
+		$this->assertEvaluates(' bar ', '$true ? bar : baz');
+		$this->assertEvaluates(' baz', '$false ? bar : baz');
 		
-		$this->assert_evaluates(' Foo bar ', '$true ? Foo bar : Baz foo');
-		$this->assert_evaluates(' Baz foo', '$false ? Foo bar : Baz foo');
+		$this->assertEvaluates(' Foo bar ', '$true ? Foo bar : Baz foo');
+		$this->assertEvaluates(' Baz foo', '$false ? Foo bar : Baz foo');
 		
-		$this->assert_evaluates('| bar', '$true ?| $foo');
+		$this->assertEvaluates('| bar', '$true ?| $foo');
 	}
 	
 	/** 
 	 * @expectedException \BadFunctionCallException
 	 */
-	function test_evaluate_function_error() {
-		$this->evaluate_expression('undefined_function($foo)', $this->data);
+	function testEvaluateFunctionError() {
+		$this->evaluateExpression('undefined_function($foo)', $this->data);
 	}
 	
-	function test_evaluate_function_success() {
-		$this->assert_evaluates('Bar', 'ucfirst($foo)');
-		$this->assert_evaluates('Bar', 'DataObject::foobar($foo)');
-	}
-	
-	/**
-	 * @depends test_evaluate_function_success
-	 */
-	function test_evaluate_function_nested() {
-		$this->assert_evaluates('Bar', 'ucfirst(strtolower($FOO))');
-	}
-	
-	function test_evaluate_default_value() {
-		$this->assert_evaluates('bar', '$foo||fallback');
-		$this->assert_evaluates('fallback', '$foo.bar||fallback');
-		$this->assert_evaluates('', '$foo.bar||');
+	function testEvaluateFunctionSuccess() {
+		$this->assertEvaluates('Bar', 'ucfirst($foo)');
+		$this->assertEvaluates('Bar', 'DataObject::foobar($foo)');
 	}
 	
 	/**
-	 * @depends test_evaluate_variable_success
-	 * @depends test_evaluate_no_expression
-	 * @depends test_evaluate_condition_extended
-	 * @depends test_evaluate_function_success
-	 * @depends test_evaluate_default_value
+	 * @depends testEvaluateFunctionSuccess
 	 */
-	function test_evaluate_expression_combined() {
-		$this->assert_evaluates('Bar', '$true?ucfirst($foo)');
-		$this->assert_evaluates('', '$false?ucfirst($foo)');
-		$this->assert_evaluates('Bar', '$true?ucfirst($foo):baz');
-		$this->assert_evaluates('baz', '$false?ucfirst($foo):baz');
-		$this->assert_evaluates('Baz', 'ucfirst($array.bar)');
+	function testEvaluateFunctionNested() {
+		$this->assertEvaluates('Bar', 'ucfirst(strtolower($FOO))');
 	}
 	
-	function assert_renders($expected_file, $tpl) {
+	function testEvaluateDefaultValue() {
+		$this->assertEvaluates('bar', '$foo||fallback');
+		$this->assertEvaluates('fallback', '$foo.bar||fallback');
+		$this->assertEvaluates('', '$foo.bar||');
+	}
+	
+	/**
+	 * @depends testEvaluateVariableSuccess
+	 * @depends testEvaluateNoExpression
+	 * @depends testEvaluateConditionExtended
+	 * @depends testEvaluateFunctionSuccess
+	 * @depends testEvaluateDefaultValue
+	 */
+	function testEvaluateExpressionCombined() {
+		$this->assertEvaluates('Bar', '$true?ucfirst($foo)');
+		$this->assertEvaluates('', '$false?ucfirst($foo)');
+		$this->assertEvaluates('Bar', '$true?ucfirst($foo):baz');
+		$this->assertEvaluates('baz', '$false?ucfirst($foo):baz');
+		$this->assertEvaluates('Baz', 'ucfirst($array.bar)');
+	}
+	
+	function assertRenders($expected_file, $tpl) {
 		$expected_file = "tests/_files/rendered/$expected_file.html";
-		$this->assertEquals(self::strip_newlines(file_get_contents($expected_file)),
-		                    self::strip_newlines($tpl->render()));
+		$this->assertEquals(self::stripNewlines(file_get_contents($expected_file)),
+		                    self::stripNewlines($tpl->render()));
 	}
 	
-	function test_render_simple() {
+	function testRenderSimple() {
 		$this->assertEquals('test', $this->tpl->render());
 	}
 	
 	/**
-	 * @depends test_evaluate_expression_combined
+	 * @depends testEvaluateExpressionCombined
 	 */
-	function test_render_variable() {
+	function testRenderVariable() {
 		$tpl = new Template('variables');
 		$tpl->set(array(
 			'foobar' => 'my_foobar_variable',
 			'foobaz' => 'MY_FOOBAZ_VARIABLE'
 		));
-		$this->assert_renders('variables', $tpl);
+		$this->assertRenders('variables', $tpl);
 	}
 	
 	/**
-	 * @depends test_render_simple
+	 * @depends testRenderSimple
 	 */
-	function test_render_blocks() {
+	function testRenderBlocks() {
 		$tpl = new Template('blocks');
 		
 		$foo = $tpl->add('foo');
@@ -414,21 +414,21 @@ class TemplateTest extends PHPUnit_Framework_TestCase {
 		$foo->add('bar');
 		$tpl->add('foo');
 		
-		$this->assert_renders('blocks', $tpl);
+		$this->assertRenders('blocks', $tpl);
 	}
 	
 	/**
-	 * @depends test_render_variable
-	 * @depends test_render_blocks
+	 * @depends testRenderVariable
+	 * @depends testRenderBlocks
 	 */
-	function test_render_full() {
+	function testRenderFull() {
 		$tpl = new Template('full');
 		$first_foo = $tpl->add('foo')->set('foobaz', 'FIRST_FOOBAZ_VAR');
 		$first_foo->add('bar')->set('foobar', 'first_foobar_var');
 		$second_foo = $tpl->add('foo')->set('foobaz', 'SECOND_FOOBAZ_VAR');
 		$second_foo->add('bar')->set('foobar', 'second_foobar_var');
 		$second_foo->add('bar')->set('foobar', 'third_foobar_var');
-		$this->assert_renders('full', $tpl);
+		$this->assertRenders('full', $tpl);
 	}
 }
 

@@ -61,7 +61,7 @@ abstract class Base {
 	 * @param string $directory The directory to append a slash to.
 	 * @return string
 	 */
-	static function path_with_slash($directory) {
+	static function pathWithSlash($directory) {
 		return $directory[strlen($directory) - 1] == '/' ? $directory : $directory.'/';
 	}
 }

@@ -43,7 +43,7 @@ require_once 'node.php';
  *     'page_content' => 'Lorem ipsum ...'
  * ));
  * 
- * foreach( array('Some ad', 'Another ad', 'More ads') as $ad )
+ * foreach (array('Some ad', 'Another ad', 'More ads') as $ad)
  *     $tpl->add('ad')->set('ad_content', $ad);
  * 
  * echo $tpl->render();
@@ -164,7 +164,7 @@ class Template extends Node {
 			);
 		}
 		
-		$this->parse_blocks();
+		$this->parseBlocks();
 	}
 	
 	/**
@@ -172,7 +172,7 @@ class Template extends Node {
 	 * 
 	 * @return string The path to the template file.
 	 */
-	function get_path() {
+	function getPath() {
 		return $this->path;
 	}
 	
@@ -182,7 +182,7 @@ class Template extends Node {
 	 * 
 	 * @throws ParseError If an {end} tag is not used properly.
 	 */
-	private function parse_blocks() {
+	private function parseBlocks() {
 		$current = $root = new Node('block');
 		$after = $this->file_content;
 		$line_count = 0;
@@ -196,10 +196,10 @@ class Template extends Node {
 			
 			if ($brackets_content == 'end') {
 				// {end} encountered, go one level up in the tree
-				if ($current->is_root())
+				if ($current->isRoot())
 					throw new ParseError($this, 'unexpected {end}', $line_count + 1);
 				
-				$current = $current->get_parent();
+				$current = $current->getParent();
 			} elseif(substr($brackets_content, 0, 6) == 'block:') {
 				// {block:...} encountered
 				$block_name = substr($brackets_content, 6);
@@ -232,7 +232,7 @@ class Template extends Node {
 	 */
 	function render() {
 		// Use recursion to parse all blocks from the root level
-		return self::render_block($this->root_block, $this);
+		return self::renderBlock($this->root_block, $this);
 	}
 	
 	/**
@@ -241,13 +241,13 @@ class Template extends Node {
 	 * @param Node $block The block to render.
 	 * @param Node $data The data block to search in for the variable values.
 	 * @return string The rendered block.
-	 * @uses evaluate_expression()
+	 * @uses evaluateExpression()
 	 */
-	private static function render_block(Node $block, Node $data) {
+	private static function renderBlock(Node $block, Node $data) {
 		$html = '';
 		
-		foreach ($block->get_children() as $child) {
-			switch ($child->get_name()) {
+		foreach ($block->getChildren() as $child) {
+			switch ($child->getName()) {
 				case 'html':
 					$html .= $child->get('content');
 					break;
@@ -255,11 +255,11 @@ class Template extends Node {
 					$block_name = $child->get('name');
 					
 					foreach ($data->find($block_name) as $child_data)
-						$html .= self::render_block($child, $child_data);
+						$html .= self::renderBlock($child, $child_data);
 					
 					break;
 				case 'expression':
-					$html .= self::evaluate_expression($child->get('content'), $data);
+					$html .= self::evaluateExpression($child->get('content'), $data);
 			}
 		}
 		
@@ -269,7 +269,7 @@ class Template extends Node {
 	/**
 	 * Evaluate a <variable> expression.
 	 * 
-	 * This function is a helper for {@link evaluate_expression()}.
+	 * This function is a helper for {@link evaluateExpression()}.
 	 * 
 	 * @param string[] $matches Regex matches for variable pattern.
 	 * @return string The evaluation of the variable.
@@ -278,7 +278,7 @@ class Template extends Node {
 	 * @throws \OutOfBoundsException If an unexisting array key is requested.
 	 * @throws \UnexpectedValueException In some other error situations.
 	 */
-	private static function evaluate_variable(array $matches, Node $data) {
+	private static function evaluateVariable(array $matches, Node $data) {
 		$before = $matches[1];
 		$noescape_sign = $matches[2];
 		$variable = $matches[3];
@@ -335,7 +335,7 @@ class Template extends Node {
 		
 		// Escape value
 		if (is_string($value) && !$noescape_sign)
-			$value = self::escape_variable_value($value);
+			$value = self::escapeVariableValue($value);
 		
 		return $before . $value;
 	}
@@ -348,27 +348,27 @@ class Template extends Node {
 	 * @param string $value The variable value to escape.
 	 * @return string The escaped value.
 	 */
-	private static function escape_variable_value($value) {
+	private static function escapeVariableValue($value) {
 		return htmlspecialchars($value, ENT_QUOTES);
 	}
 	
 	/**
 	 * Evaluate a conditional expression.
 	 * 
-	 * This function is a helper for {@link evaluate_expression()}.
+	 * This function is a helper for {@link evaluateExpression()}.
 	 * 
 	 * @param string[] $matches Regex matches for conditional pattern.
 	 * @param Node $data A data tree containing variable values to use for
 	 *                   variable expressions.
 	 * @return string The evaluation of the condition.
 	 */
-	private static function evaluate_condition(array $matches, Node $data) {
-		if (self::evaluate_expression($matches[1], $data, false)) {
+	private static function evaluateCondition(array $matches, Node $data) {
+		if (self::evaluateExpression($matches[1], $data, false)) {
 			// Condition evaluates to true: return 'if' evaluation
-			return self::evaluate_expression($matches[2], $data, false);
+			return self::evaluateExpression($matches[2], $data, false);
 		} elseif (count($matches) == 4) {
 			// <nested_exp>?<nested_exp>:<nested_exp>
-			return self::evaluate_expression($matches[3], $data, false);
+			return self::evaluateExpression($matches[3], $data, false);
 		}
 		
 		// No 'else' specified: evaluation is an empty string
@@ -378,7 +378,7 @@ class Template extends Node {
 	/**
 	 * Evaluate a static function call expression.
 	 * 
-	 * This function is a helper for {@link evaluate_expression()}.
+	 * This function is a helper for {@link evaluateExpression()}.
 	 * 
 	 * @param array $matches Regex matches for function pattern.
 	 * @param Node $data A data tree containing variable values to use for
@@ -386,7 +386,7 @@ class Template extends Node {
 	 * @return string The evaluation of the function call.
 	 * @throws \BadFunctionCallException If the function is undefined.
 	 */
-	private static function evaluate_function(array $matches, Node $data) {
+	private static function evaluateFunction(array $matches, Node $data) {
 		$function = $matches[1];
 		$parameter = $matches[2];
 		
@@ -396,7 +396,7 @@ class Template extends Node {
 			);
 		}
 		
-		$parameter_value = self::evaluate_expression($parameter, $data, false);
+		$parameter_value = self::evaluateExpression($parameter, $data, false);
 		
 		return call_user_func($function, $parameter_value);
 	}
@@ -404,7 +404,7 @@ class Template extends Node {
 	/**
 	 * Evaluate a PHP-constant expression.
 	 * 
-	 * This function is a helper for {@link evaluate_expression()}.
+	 * This function is a helper for {@link evaluateExpression()}.
 	 * 
 	 * @param string $constant The name of the PHP constant.
 	 * @param bool $root_level Whether the expression was enclosed in curly
@@ -412,7 +412,7 @@ class Template extends Node {
 	 * @return string The evaluation of the constant if it is defined, the
 	 *                original constant name otherwise.
 	 */
-	private static function evaluate_constant($constant, $root_level) {
+	private static function evaluateConstant($constant, $root_level) {
 		if (defined($constant))
 			return constant($constant);
 		
@@ -433,30 +433,30 @@ class Template extends Node {
 	 * @return string The evaluation of the expression if present, the
 	 *                original string enclosed in curly brackets otherwise.
 	 */
-	private static function evaluate_expression($expression, Node $data, $root_level=true) {
+	private static function evaluateExpression($expression, Node $data, $root_level=true) {
 		if ($expression) {
 			$name = '[a-zA-Z0-9-_]+';
 			$function = "$name(?:::$name)?";
 			
 			if (preg_match("/^([^?]*?)\s*\?([^:]*)(?::(.*))?$/", $expression, $matches)) {
 				// <nested_exp>?<nested_exp> | <nested_exp>?<nested_exp>:<nested_exp>
-				return self::evaluate_condition($matches, $data);
+				return self::evaluateCondition($matches, $data);
 			} elseif (preg_match("/^(.*?)\\$(\\$?)($name)(?:\.($name)(\(\))?)?$/", $expression, $matches)) {
 				// $<name> | $<name>.<name> | $<name>.<name>()
 				// | $$<name> | $$<name>.<name> | $$<name>.<name>()
-				return self::evaluate_variable($matches, $data);
+				return self::evaluateVariable($matches, $data);
 			} elseif (preg_match("/^($function)\((.+?)\)?$/", $expression, $matches)) {
 				// <function>(<nested_exp>)
-				return self::evaluate_function($matches, $data);
+				return self::evaluateFunction($matches, $data);
 			} elseif (preg_match("/^([A-Z0-9_]+)$/", $expression, $matches)) {
 				// <constant>
-				return self::evaluate_constant($expression, $root_level);
+				return self::evaluateConstant($expression, $root_level);
 			} elseif (($split_at = strpos($expression, '||', 1)) !== false) {
 				// <nested_exp>||<nested_exp>
 				try {
-					return self::evaluate_expression(substr($expression, 0, $split_at), $data, false);
+					return self::evaluateExpression(substr($expression, 0, $split_at), $data, false);
 				} catch(\RuntimeException $e) {
-					return self::evaluate_expression(substr($expression, $split_at + 2), $data, false);
+					return self::evaluateExpression(substr($expression, $split_at + 2), $data, false);
 				}
 			}
 		}
@@ -468,7 +468,7 @@ class Template extends Node {
 	/**
 	 * Remove all current include paths.
 	 */
-	static function clear_include_path() {
+	static function clearIncludePath() {
 		self::$include_path = array();
 	}
 	
@@ -476,11 +476,11 @@ class Template extends Node {
 	 * Replace all include paths by a single new one.
 	 * 
 	 * @param string $path The new path to set as root.
-	 * @uses clear_include_path()
+	 * @uses clearIncludePath()
 	 */
-	static function set_root($path) {
-		self::clear_include_path();
-		self::add_root($path);
+	static function setRoot($path) {
+		self::clearIncludePath();
+		self::addRoot($path);
 	}
 	
 	/**
@@ -489,7 +489,7 @@ class Template extends Node {
 	 * @param string $path The path to add.
 	 * @throws FileNotFoundError If the path does not exist.
 	 */
-	static function add_root($path) {
+	static function addRoot($path) {
 		if ($path[strlen($path) - 1] != '/')
 			$path .= '/';
 		
@@ -517,7 +517,7 @@ class ParseError extends \RuntimeException {
 	 */
 	function __construct(Template $tpl, $message, $line) {
 		$this->message = sprintf('Parse error in file %s, line %d: %s',
-			$tpl->get_path(), $line, $message);
+			$tpl->getPath(), $line, $message);
 	}
 }
 

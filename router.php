@@ -28,8 +28,8 @@ require_once 'base.php';
  *     '/home' => 'home',
  *     '/contact' => 'contact'
  * ));
- * $response = $router->call_handler('/home');     // 'This is the home page.'
- * $response = $router->call_handler('/contact');  // 'This is the contact page.'
+ * $response = $router->callHandler('/home');     // 'This is the home page.'
+ * $response = $router->callHandler('/contact');  // 'This is the contact page.'
  * </code>
  * 
  * You can use regular expression patterns to specify an URL. Any matches are
@@ -42,8 +42,8 @@ require_once 'base.php';
  * $router = new Router(array(
  *     '/(home|contact)' => 'page'
  * ));
- * $response = $router->call_handler('/home');     // 'This is the home page.'
- * $response = $router->call_handler('/contact');  // 'This is the contact page.'
+ * $response = $router->callHandler('/home');     // 'This is the home page.'
+ * $response = $router->callHandler('/contact');  // 'This is the contact page.'
  * </code>
  * 
  * @package WebBasics
@@ -70,7 +70,7 @@ class Router extends Base {
 	 */
 	function __construct(array $routes=array()) {
 		foreach ($routes as $pattern => $handler)
-			$this->add_route($pattern, $handler);
+			$this->addRoute($pattern, $handler);
 	}
 	
 	/**
@@ -87,7 +87,7 @@ class Router extends Base {
 	 * @param mixed $handler The handler function to call when $pattern is matched.
 	 * @throws \InvalidArgumentException If $handler is not callable.
 	 */
-	function add_route($pattern, $handler) {
+	function addRoute($pattern, $handler) {
 		if (!is_callable($handler))
 			throw new \InvalidArgumentException(sprintf('Handler for patterns "%s" is not callable.', $pattern));
 		
@@ -107,7 +107,7 @@ class Router extends Base {
 	 * @return mixed FALSE if no pattern was matched, the return value of the
 	 *               corresponding handler function otherwise.
 	 */
-	function call_handler($url) {
+	function callHandler($url) {
 		foreach ($this->routes as $pattern => $handler) {
 			if (preg_match($pattern, $url, $matches)) {
 				array_shift($matches);
