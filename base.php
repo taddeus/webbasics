@@ -8,6 +8,7 @@
 
 namespace webbasics;
 
+require_once 'utils.php';
 require_once 'logger.php';
 
 /**
