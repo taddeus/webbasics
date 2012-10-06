@@ -38,7 +38,6 @@ require_once 'base.php';
  * </code>
  * 
  * @package WebBasics
- * @todo Finish unit tests
  */
 class Collection extends Base {
 	/**
