@@ -118,7 +118,7 @@ interface AuthorizedUser {
 	function getRole();
 }
 
-class Security {
+class Security implements Singleton {
 	const SESSION_TOKEN_NAME = 'auth_token';
 	const SESSION_NAME_USERDATA = 'auth_userdata';
 	
