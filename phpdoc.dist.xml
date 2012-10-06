@@ -9,7 +9,7 @@
 		<target>build/docs</target>
 	</transformer>
 	<transformations>
-		<template name="zend" />
+		<template name="abstract" />
 	</transformations>
 	<files>
 		<directory>.</directory>
