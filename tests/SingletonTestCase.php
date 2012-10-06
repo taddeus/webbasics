@@ -9,6 +9,10 @@ abstract class SingletonTestCase extends PHPUnit_Framework_TestCase {
 		$this->rclass = new ReflectionClass($this->getClassName());
 	}
 	
+	function testSingletonInterface() {
+		$this->assertTrue($this->rclass->implementsInterface('webbasics\Singleton'));
+	}
+	
 	function testConstructorPrivateness() {
 		$rmethod = new ReflectionMethod($this->getClassName(), '__construct');
 		$this->assertTrue($rmethod->isPrivate());

@@ -104,6 +104,23 @@ class FileNotFoundError extends \Exception {
 }
 
 /**
+ * The Singleton interface mshould be implemented by classes that allow only
+ * one instance.
+ * 
+ * The instance must be saved statically after the constructor has been
+ * called. When getInstance() is called another time, this instance is
+ * returned.
+ */
+interface Singleton {
+	/**
+	 * Create a new singleton instance, and save it in the static $instance variable.
+	 * 
+	 * @return object An existing instance from the $instance variable, or a new instance.
+	 */
+	public static function getInstance();
+}
+
+/**
  * Format a string using parameters in an associative array.
  * 
  * <code>

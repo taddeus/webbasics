@@ -10,7 +10,7 @@ namespace webbasics;
 
 require_once 'base.php';
 
-class Session {
+class Session implements Singleton {
 	private static $instance;
 	
 	static function getInstance() {
