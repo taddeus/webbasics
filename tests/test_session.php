@@ -16,7 +16,7 @@ class SessionTest extends SingletonTestCase {
 	
 	function setUp() {
 		parent::setUp();
-		$this->session = Session::getInstance();
+		$this->session = @Session::getInstance();
 	}
 	
 	function tearDown() {
@@ -72,6 +72,9 @@ class SessionTest extends SingletonTestCase {
 		$old_id = session_id();
 		$this->session->regenerateId();
 		$this->assertNotEquals($old_id, session_id());
+		
+		// Disable output buffering to show progress on other tests
+		@ob_end_flush();
 	}
 	
 	function testClear() {
@@ -80,9 +83,6 @@ class SessionTest extends SingletonTestCase {
 		$this->assertEmpty($_SESSION);
 	}
 	
-	/**
-	 * @depends testRegenerateId
-	 */
 	function testDestroySimple() {
 		$this->session->destroy();
 		$this->assertEquals('', session_id());
