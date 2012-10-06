@@ -72,9 +72,6 @@ class SessionTest extends SingletonTestCase {
 		$old_id = session_id();
 		$this->session->regenerateId();
 		$this->assertNotEquals($old_id, session_id());
-		
-		// Disable output buffering to show progress on other tests
-		@ob_end_flush();
 	}
 	
 	function testClear() {
@@ -83,17 +80,12 @@ class SessionTest extends SingletonTestCase {
 		$this->assertEmpty($_SESSION);
 	}
 	
-	function testDestroySimple() {
-		$this->session->destroy();
-		$this->assertEquals('', session_id());
-	}
-	
 	/**
 	 * @depends testClear
 	 */
 	function testDestroyClear() {
 		$_SESSION['foo'] = 'bar';
-		$this->session->destroy(true);
+		$this->session->destroy();
 		$this->assertEmpty($_SESSION);
 		$this->assertEquals('', session_id());
 	}

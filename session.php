@@ -92,11 +92,23 @@ class Session implements Singleton {
 		$_SESSION = array();
 	}
 	
-	function destroy($clear=false) {
+	function destroy($clear=true) {
+		// Delete session
+		session_destroy();
+		
+		// Clear session variables
 		if ($clear)
 			$this->clear();
 		
-		session_destroy();
+		// Delete session cookie
+		if (ini_get('session.use_cookies')) {
+			$params = session_get_cookie_params();
+			setcookie(session_name(), '', time() - 42000, $params['path'],
+				$params['domain'], $params['secure'], $params['httponly']);
+		}
+		
+		// Delete reference to instance so that the next getInstance() call
+		// will start a new session
 		self::$instance = null;
 	}
 }
