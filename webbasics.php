@@ -14,6 +14,7 @@ require_once 'autoloader.php';
 require_once 'collection.php';
 require_once 'router.php';
 require_once 'template.php';
+require_once 'session.php';
 // @codeCoverageIgnoreEnd
 
 ?>
