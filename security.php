@@ -60,7 +60,7 @@
  * 
  * And the User model implementation used in the example above:
  * <code>
- * use PHPActiveRecord\Model;
+ * use ActiveRecord\Model;
  * use webbasics\AuthenticatedUser;
  * use webbasics\AuthorizedUser;
  * 
