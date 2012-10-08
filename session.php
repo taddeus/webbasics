@@ -1,18 +1,31 @@
 <?php
-/*
+/**
  * 
  * 
  * @author Taddeus Kroes
  * @date 05-10-2012
+ * @since 0.2
+ * @todo Documentation
  */
 
 namespace webbasics;
 
 require_once 'base.php';
 
+/**
+ * 
+ * 
+ * @package WebBasics
+ */
 class Session implements Singleton {
+	/**
+	 * @see Singleton::$instance
+	 */
 	private static $instance;
 	
+	/**
+	 * @see Singleton::getInstance()
+	 */
 	static function getInstance() {
 		if (self::$instance === null)
 			self::$instance = new self;
@@ -21,6 +34,8 @@ class Session implements Singleton {
 	}
 	
 	/**
+	 * Constructor, starts a new session.
+	 * 
 	 * @codeCoverageIgnore
 	 */
 	private function __construct() {
