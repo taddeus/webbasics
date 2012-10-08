@@ -20,6 +20,7 @@
 			<exclude>
 				<directory>tests</directory>
 				<directory>build</directory>
+				<directory>php-activerecord</directory>
 			</exclude>
 		</whitelist>
 	</filter>

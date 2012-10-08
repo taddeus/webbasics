@@ -15,5 +15,6 @@
 		<directory>.</directory>
 		<ignore>tests/*</ignore>
 		<ignore>build/*</ignore>
+		<ignore>php-activerecord/*</ignore>
 	</files>
 </phpdoc>
