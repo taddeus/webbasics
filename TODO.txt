@@ -1,4 +1,2 @@
-- string utilities
-- user authentication
-- user authorization
 - Autoloader class should user plain class names for file names
+- Make Autoloader a singleton
