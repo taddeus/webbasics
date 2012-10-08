@@ -15,6 +15,12 @@ require_once 'collection.php';
 require_once 'router.php';
 require_once 'template.php';
 require_once 'session.php';
+require_once 'security.php';
+
+if (defined('WB_INCLUDE_PHPACTIVERECORD') && WB_INCLUDE_PHPACTIVERECORD) {
+	require_once 'php-activerecord/ActiveRecord.php';
+	require_once 'user.php';
+}
 // @codeCoverageIgnoreEnd
 
 ?>

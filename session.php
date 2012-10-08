@@ -77,6 +77,10 @@ class Session implements Singleton {
 		return true;
 	}
 	
+	function getId() {
+		return session_id();
+	}
+	
 	function regenerateId() {
 		session_regenerate_id();
 	}

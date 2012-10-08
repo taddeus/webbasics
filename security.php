@@ -7,7 +7,7 @@
  * try {
  *     $security = webbasics\Security::getInstance();
  *     
- *     // Authentication: can the origin of the request be trusted?
+ *     // SecureUser: can the origin of the request be trusted?
  *     
  *     // Verify that a user is logged in
  *     $security->requireLogin();
@@ -24,11 +24,11 @@
  *     
  *     // Pass token to template so that it can be used in a submitted form or
  *     // AJAX request
- *     $template->set('token', $auth->generateToken());
+ *     $template->set('token', $user->generateToken());
  *     
  *     ...
  *     
- * } catch(webbasics\AuthenticationFailed $e) {
+ * } catch(webbasics\SecureUserFailed $e) {
  *     die('Get lost hacker!');
  * } catch(webbasics\AuthorizationFailed $e) {
  *     http_response_code(403);
@@ -44,86 +44,55 @@
  * if (!$user)
  *     die('Invalid username');
  * 
- * // Current user is part of the 
  * $security = webbasics\Security::getInstance();
- * $security->setUser($user);
  * 
  * // Simple: use a plain password
- * if (!$security->attemptPassword($user, $_POST['password']))
+ * if (!$security->attemptPasswordLogin($user, $_POST['password']))
  *     die('Invalid password');
  * 
  * // More secure: hash the password in a javascript function before
  * // submitting the login form
- * if (!$security->attemptPasswordHash($user, $_POST['password_hash']))
+ * if (!$security->attemptPasswordHashLogin($user, $_POST['password_hash']))
  *     die('Invalid password');
  * </code>
  * 
  * And the User model implementation used in the example above:
  * <code>
- * use ActiveRecord\Model;
- * use webbasics\AuthenticatedUser;
- * use webbasics\AuthorizedUser;
  * 
- * class User extends Model implements AuthenticatedUser, AuthorizedUser {
- *     function getUsername() {
- *         return $this->username;
- *     }
- *     
- *     function getPasswordHash() {
- *         return $this->password;
- *     }
- *     
- *     function getCookieToken() {
- *         return $this->cookie_token;
- *     }
- *     
- *     function setCookieToken($token) {
- *         $this->update_attribute('cookie_token', $token);
- *     }
- *     
- *     function getRegistrationToken() {
- *         return $this->registration_token;
- *     }
- *     
- *     function setRegistrationToken($token) {
- *         $this->update_attribute('registration_token', $token);
- *     }
- *     
- *     function getRole() {
- *         return $this->role;
- *     }
- * }
+ * use webbasics\ActiveRecordUser;
+ * class User extends webbasics\ActiveRecordUser {}
  * </code>
  * 
+ * WebBasics provides the {@link AuthenticatedUser} and {@link AuthorizedUser}
+ * classes, which extend ActiveRecord\Model and implement both security
+ * interfaces.
+ * 
  * @author Taddeus Kroes
- * @date 05-10-2012
+ * @date 06-10-2012
+ * @since 0.2
+ * @todo Documentation, unit tests
  */
 
 namespace webbasics;
 
-require_once 'base.php';
-
-interface AuthenticatedUser {
-	function getUsername();
-	function getPasswordHash();
-	
-	function getCookieToken();
-	function setCookieToken($token);
-	
-	function getRegistrationToken();
-	function setRegistrationToken($token);
-}
-
-interface AuthorizedUser {
-	function getRole();
-}
+require_once 'session.php';
 
 class Security implements Singleton {
-	const SESSION_TOKEN_NAME = 'auth_token';
-	const SESSION_NAME_USERDATA = 'auth_userdata';
+	/**
+	 * All alphanumeric characters.
+	 * @var string
+	 */
+	const ALNUM_CHARS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUWXYZ01234567890123456789';
+	
+	const TOKEN_NAME = 'auth_token';
+	const USERDATA_NAME = 'auth_userdata';
 	
 	private static $instance;
 	
+	/**
+	 * User that is currently logged in.
+	 * @var BaseUser
+	 */
 	private $user;
 	
 	static function getInstance() {
@@ -138,58 +107,207 @@ class Security implements Singleton {
 	function generateToken() {
 		$session = Session::getInstance();
 		$token = sha1(self::generateRandomString(10));
-		$session->set(self::SESSION_TOKEN_NAME, $token);
+		$session->set(self::TOKEN_NAME, $token);
 		return $token;
 	}
 	
 	function requireToken($request_token) {
 		if ($request_token != $this->getSavedToken())
-			throw new AuthenticationFailed('invalid token "%s"', $request_token);
+			throw new SecureUserFailed('invalid token "%s"', $request_token);
 	}
 	
 	private function getSavedToken() {
 		$session = Session::getInstance();
 		
-		if (!$session->isRegistered(self::SESSION_TOKEN_NAME))
-			throw new AuthenticationError('no token saved in session');
+		if (!$session->isRegistered(self::TOKEN_NAME))
+			throw new SecureUserError('no token saved in session');
 		
-		return $session->get(self::SESSION_TOKEN_NAME);
-	}
-	
-	function sessionDataExists() {
-		return Session::getInstance()->areRegistered(array(
-			self::SESSION_TOKEN_NAME, self::SESSION_NAME_USERDATA));
+		return $session->get(self::TOKEN_NAME);
 	}
 	
 	function requireLogin() {
-		
+		if ($this->user === null && !$this->loadUserFromSession())
+			throw new SecureUserFailed('no user is logged in');
 	}
 	
-	function requireUserRole() {
+	private function loadUserFromSession() {
+		$session = Session::getInstance();
 		
+		if (!$session->isRegistered(self::USERDATA_NAME))
+			return false;
+		
+		// Load session data
+		$user = $session->get(self::USERDATA_NAME);
+		
+		// Verify session data
+		if ($user->getSessionHash() != $this->getSessionHash())
+			throw new SecureUserFailure('session data could not be verified');
+		
+		$this->user = $user;
+		return true;
 	}
 	
-	//function setUser(AuthenticatedUser $user) {
-	//	$this->user = $user;
-	//}
+	function getSessionHash() {
+		return self::hash(Session::getInstance()->getId());
+	}
 	
-	static function generateRandomString($length) {
-		$CHARS = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUWXYZ01234567890123456789';
+	function requireUserRole($required_role) {
+		if (!($this->user instanceof RoleUser))
+			throw new AuthorizationError('user must implement interface RoleUser');
+		
+		if ($this->user->getRole() != $required_role)
+			throw new AuthorizationFailed('page requires user role "%s"', $required_role);
+	}
+	
+	function attemptPasswordLogin(BaseUser $user, $password) {
+		return $this->attemptPasswordHashLogin($user, self::hash($password));
+	}
+	
+	function attemptPasswordHashLogin(BaseUser $user, $password_hash) {
+		if ($password_hash != $user->getPasswordHash())
+			return false;
+		
+		$this->loginUser($user);
+		return true;
+	}
+	
+	private function loginUser(BaseUser $user) {
+		// Create a new session id so that a hijacked session will not become
+		// logged in as well
+		Session::getInstance()->regenerateId();
+		
+		// Save a hash of the new session id in the database for verification
+		$user->setSessionHash($this->getSessionHash());
+		$this->user = clone $user;
+		Session::getInstance()->set(self::USERDATA_NAME, $this->user);
+	}
+	
+	/**
+	 * Get the hash value of a string.
+	 * 
+	 * THe hash function used is SHA-256.
+	 * 
+	 * @param string $string The string to hash.
+	 * @return string A 64-byte hash.
+	 */
+	static function hash($string) {
+		return hash('sha256', $string);
+	}
+	
+	/**
+	 * Generate a random string of the specified length.
+	 * 
+	 * @param int $lengh The length of the string to generate.
+	 * @param string $chars The caracters to choose from, defaults to {@link ALNUM_CHARS}.
+	 * @return string The generated string.
+	 */
+	static function generateRandomString($length, $chars=self::ALNUM_CHARS) {
+		srand(time());
 		$string = '';
 		
-		srand(time());
-		
 		for ($i = 0; $i < $length; $i++)
-			$string .= $CHARS[rand(0, strlen($CHARS) - 1)];
+			$string .= $chars[rand(0, strlen($chars) - 1)];
 		
 		return $string;
 	}
 }
 
-class AuthenticationError extends FormattedException {}
-class AuthenticationFailed extends FormattedException {}
+interface BaseUser {
+	function getUsername();
+	function getPasswordHash();
+}
 
+interface SecureUser extends BaseUser {
+	function getSessionHash();
+	function setSessionHash($hash);
+}
+
+interface RoleUser {
+	function getRole();
+}
+
+/**
+ * Exception, thrown when an error occurs during authentication.
+ */
+class SecureUserError extends FormattedException {}
+
+/**
+ * Exception, thrown when the current user cannot be authenticated.
+ */
+class SecureUserFailed extends FormattedException {}
+
+/**
+ * Exception, thrown when an error occurs during authorization.
+ */
 class AuthorizationError extends FormattedException {}
+
+/**
+ * Exception, thrown when the current user is unauthorized to perform the
+ * current request.
+ */
 class AuthorizationFailed extends FormattedException {}
+
+/**
+ * The StaticUser class is meant for websites without databases, it allows for
+ * hard-coded usernames and passwords to be specified in user objects.
+ * 
+ * Example usage:
+ * <code>
+ * class JohnDoe extends webbasics\StaticUser {
+ *     function getUsername() {
+ *         return 'john';
+ *     }
+ *     
+ *     function getPassword() {
+ *         return 'foobar';
+ *     }
+ * }
+ * 
+ * // Login controller:
+ * $security = webbasics\Security::getInstance();
+ * 
+ * switch ($_POST['username']) {
+ *     case 'john':
+ *         $success = $security->attemptPasswordLogin(new JohnDoe, $_POST['password']);
+ *         break;
+ *     ...
+ * }
+ * 
+ * // And this might be handy during debugging:
+ * $security->loginUser(new JohnDoe);
+ * </code>
+ * 
+ * Note that this simple method of authentication even allows role-based authorization:
+ * <code>
+ * abstract class User extends webbasics\StaticUser implements webbasics\RoleUser {}
+ * 
+ * class JohnDoe extends User {
+ *     function getUsername { return 'john'; }
+ *     function getPassword { return 'foobar'; }
+ *     function getRole     { return 'admin'; }
+ * }
+ * 
+ * class JaneDoe extends User {
+ *     function getUsername { return 'jane'; }
+ *     function getPassword { return 'barfoo'; }
+ *     function getRole     { return 'member'; }
+ * }
+ * </code>
+ */
+abstract class StaticUser implements BaseUser {
+	/**
+	 * @see BaseUser::getPasswordHash()
+	 */
+	function getPasswordHash() {
+		return Security::hash($this->getPassword());
+	}
+	
+	/**
+	 * 
+	 * 
+	 * @return string 
+	 */
+	abstract function getPassword();
+}
 
 ?>
