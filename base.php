@@ -63,7 +63,7 @@ abstract class Base {
 	 * @return string
 	 */
 	static function pathWithSlash($directory) {
-		return $directory[strlen($directory) - 1] == '/' ? $directory : $directory.'/';
+		return $directory[strlen($directory) - 1] == '/' ? $directory : $directory . '/';
 	}
 }
 

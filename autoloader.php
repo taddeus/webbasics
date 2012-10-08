@@ -15,79 +15,87 @@ require_once 'base.php';
  * 
  * Simple example: all classes are located in the 'classes' directory.
  * <code>
- * $loader = new Autoloader('classes');
- * $loader->loadClass('FooBar');  // Includes file 'classes/foo_bar.php'
+ * $loader = webbasics\Autoloader::getInstance();
+ * $loader->addDirectory('classes');  // Add "classes" directory to global class path
+ * $loader->loadClass('FooBar');      // Includes file "classes/FooBar.php"
  * </code>
  * 
- * An Autoloader instance can register itself to the SPL autoload stack, so
+ * The Autoloader instance registers itself to the SPL autoload stack, so
  * that explicit 'include' statements for classes are not necessary anymore.
- * Applied to the example above:
+ * Therefore, the call to loadClass() in the example above is not necessary:
  * <code>
- * $loader = new Autoloader('classes');
- * $loader->register();
- * $foobar = new FooBar();  // File 'classes/foo_bar.php' is automatically included
+ * webbasics\Autoloader::getInstance()->addDirectory('classes');
+ * $foobar = new FooBar();  // File "classes/FooBar.php" is automatically included
  * </code>
  * 
  * Namespaces are assumed to indicate subdirectories:
  * <code>
- * Autoloader::create('classes')->register();
- * $bar = new Foo\Bar();      // Includes 'classes/foo/bar.php'
- * $baz = new Foo\Bar\Baz();  // Includes 'classes/foo/bar/baz.php'
+ * webbasics\Autoloader::getInstance()->addDirectory('classes');
+ * $bar = new foo\Bar();      // Includes "classes/foo/Bar.php"
+ * $baz = new foo\bar\Baz();  // Includes "classes/foo/bar/Baz.php"
  * </code>
  * 
- * Multiple autoloaders can be registered at the same time:
+ * To load classes within some namespace efficiently, directories can be
+ * assigned to a root namespace:
  * <code>
- * <code>
- * File structure:
- * classes/
- *   | foo.php  // Contains class 'Foo'
- * other_classes/
- *   | bar.php  // Contains class 'Bar'
+ * $loader = webbasics\Autoloader::getInstance();
+ * $loader->addDirectory('models', 'models');
+ * 
+ * // File "models/Foo.php"
+ * namespace models;
+ * class Foo extends ActiveRecord\Model { ... }
  * </code>
- * Autoloader::create('classes')->register();
- * Autoloader::create('other_classes', true)->register();
- * $foo = new Foo();  // Includes 'classes/foo.php'
- * $bar = new Bar();  // Includes 'other_classes/bar.php', since 'classes/bar.php' does not exist
- * $baz = new Baz();  // Throws a FileNotFoundError, since 'other_classes/baz.php' does not exist
+ * 
+ * Exception throwing can be enabled in case a class does not exist:
+ * <code>
+ * $loader = webbasics\Autoloader::getInstance();
+ * $loader->addDirectory('classes');
+ * $loader->setThrowExceptions(true);
+ * 
+ * try {
+ *     new Foo();
+ * } catch (webbasics\AutoloadError $e) {
+ *     // "classes/Foo.php" does not exist
+ * }
  * </code>
  * 
  * @package WebBasics
  */
-class Autoloader extends Base {
+class Autoloader extends Base implements Singleton {
 	/**
-	 * The root directory to look in.
-	 * 
-	 * @var string
+	 * Namespaces mapping to lists of directories.
+	 * @var array
 	 */
-	private $root_directory;
+	private $directories = array('\\' => array());
 	
 	/**
-	 * The namespace classes in the root directory are expected to be in.
-	 * 
-	 * This namespace is removed from the beginning of loaded class names.
-	 * 
-	 * @var string
-	 */
-	private $root_namespace = '\\';
-	
-	/**
-	 * Whether to throw an exception when a class file does not exist.
-	 * 
+	 * Whether to throw an exception if a class file does not exist.
 	 * @var bool
 	 */
-	private $throw_errors;
+	private $throw_exceptions = false;
+	
+	/**
+	 * @see Singleton::$instance
+	 */
+	private static $instance;
+	
+	/**
+	 * @see Singleton::getInstance()
+	 */
+	static function getInstance() {
+		if (self::$instance === null)
+			self::$instance = new self;
+		
+		return self::$instance;
+	}
 	
 	/**
 	 * Create a new Autoloader instance.
 	 * 
-	 * @param string $root_directory Root directory of the autoloader.
-	 * @param string $root_namespace Root namespace of classes loaded by the autoloader.
-	 * @param bool $throw Whether to throw an exception when a class file does not exist.
+	 * Registers the {@link loadClass()} function to the SPL autoload stack.
 	 */
-	function __construct($root_directory, $root_namespace='\\', $throw=false) {
-		$this->setRootDirectory($root_directory);
-		$this->setRootNamespace($root_namespace);
-		$this->setThrowErrors($throw);
+	private function __construct() {
+		spl_autoload_register(array($this, 'loadClass'), true);
 	}
 	
 	/**
@@ -95,83 +103,50 @@ class Autoloader extends Base {
 	 * 
 	 * @param bool $throw Whether to throw exceptions.
 	 */
-	function setThrowErrors($throw) {
-		$this->throw_errors = !!$throw;
+	function setThrowExceptions($throw) {
+		$this->throw_exceptions = (bool)$throw;
 	}
 	
 	/**
-	 * Whether an exception is thrown when a class file does not exist.
+	 * Whether an exception is thrown if a class file does not exist.
 	 * 
 	 * @return bool
 	 */
-	function getThrowErrors() {
-		return $this->throw_errors;
+	function getThrowExceptions() {
+		return $this->throw_exceptions;
 	}
 	
 	/**
-	 * Set the root directory from which classes are loaded.
-	 * 
-	 * @param string $directory The new root directory.
+	 * Add a new directory to look in while looking for  a class within the given namespace.
 	 */
-	function setRootDirectory($directory) {
-		$this->root_directory = self::pathWithSlash($directory);
-	}
-	
-	/**
-	 * Get the root directory from which classes are loaded.
-	 * 
-	 * @return string
-	 */
-	function getRootDirectory() {
-		return $this->root_directory;
-	}
-	
-	/**
-	 * Set the root namespace that loaded classes are expected to be in.
-	 * 
-	 * @param string $namespace The new root namespace.
-	 */
-	function setRootNamespace($namespace) {
-		// Assert that the namespace ends with a backslash
-		if ($namespace[strlen($namespace) - 1] != '\\')
-			$namespace .= '\\';
+	function addDirectory($directory, $namespace='\\') {
+		$directory = self::pathWithSlash($directory);
 		
-		$this->root_namespace = $namespace;
+		if ($namespace[0] != '\\')
+			$namespace = '\\' . $namespace;
+		
+		if (!isset($this->directories[$namespace]))
+			$this->directories[$namespace] = array();
+		
+		if (!in_array($directory, $this->directories[$namespace]))
+			$this->directories[$namespace][] = $directory;
 	}
 	
 	/**
-	 * Get the root namespace that loaded classes are expected to be in.
+	 * Strip a namespace from the beginning of a class name.
 	 * 
-	 * @return string
-	 */
-	function getRootNamespace() {
-		return $this->root_namespace;
-	}
-	
-	/**
-	 * Convert a class name to a file name.
-	 * 
-	 * Uppercase letters are converted to lowercase and prepended
-	 * by an underscore ('_').
-	 * 
-	 * @param string $classname The class name to convert.
-	 * @return string
-	 */
-	static function classnameToFilename($classname) {
-		return strtolower(preg_replace('/(?<=.)([A-Z])/', '_\\1', $classname));
-	}
-	
-	/**
-	 * Strip the root namespace from the beginning of a class name.
-	 * 
+	 * @param string $namespace The namespace to strip.
 	 * @param string $classname The name of the class to strip the namespace from.
 	 * @return string The stripped class name.
 	 */
-	private function stripRootNamespace($classname) {
-		$begin = substr($classname, 0, strlen($this->root_namespace));
+	private static function stripNamespace($namespace, $classname) {
+		if ($namespace != '\\')
+			$namespace .= '\\';
 		
-		if ($begin == $this->root_namespace)
-			$classname = substr($classname, strlen($this->root_namespace));
+		$begin = substr($classname, 0, strlen($namespace));
+		
+		if ($begin == $namespace)
+			$classname = substr($classname, strlen($namespace));
 		
 		return $classname;
 	}
@@ -184,16 +159,14 @@ class Autoloader extends Base {
 	 * 
 	 * @param string $classname The name of the class to create the file path of.
 	 */
-	function createPath($classname) {
-		$namespaces = array_filter(explode('\\', $classname));
-		$dirs = array_map('self::classnameToFilename', $namespaces);
-		$path = $this->root_directory;
+	private static function createPath($classname) {
+		$parts = array_filter(explode('\\', $classname));
+		$path = '';
 		
-		if (count($dirs) > 1)
-			$path .= implode('/', array_slice($dirs, 0, count($dirs) - 1)).'/';
+		if (count($parts) > 1)
+			$path .= implode('/', array_slice($parts, 0, count($parts) - 1)) . '/';
 		
-		$path .= end($dirs).'.php';
-		return strtolower($path);
+		return $path . end($parts) . '.php';
 	}
 	
 	/**
@@ -203,33 +176,50 @@ class Autoloader extends Base {
 	 * namespace levels are used to indicate directory names.
 	 * 
 	 * @param string $classname The name of the class to load, including pepended namespace.
-	 * @param bool $throw Whether to throw an exception if the class file does not exist.
-	 * @return bool
-	 * @throws FileNotFoundError If the class file does not exist.
+	 * @return bool Whether the class file could be found.
+	 * @throws ClassNotFoundError If the class file does not exist.
+	 * @todo Unit test reverse-order namespace traversal
 	 */
-	function loadClass($classname, $throw=null) {
-		$classname = $this->stripRootNamespace($classname);
-		$path = $this->createPath($classname);
+	function loadClass($classname) {
+		// Prepend at least the root namespace
+		if ($classname[0] != '\\')
+			$classname = '\\' . $classname;
 		
-		if (!file_exists($path)) {
-			if ($throw || ($throw === null && $this->throw_errors))
-				throw new FileNotFoundError($path);
+		// Find namespace directory
+		$parts = array_filter(explode('\\', $classname));
+		
+		// Try larger namespaces first, getting smaller and smaller up to the global namespace
+		for ($i = count($parts); $i >= 0; $i--) {
+			$namespace = '\\' . implode('\\', array_slice($parts, 0, $i));
 			
-			return false;
+			// If the namespace is mapped to a list of directories, attempt to
+			// load the class file from there
+			if (isset($this->directories[$namespace])) {
+				foreach ($this->directories[$namespace] as $directory) {
+					$class = self::stripNamespace($namespace, $classname);
+					$path = $directory . self::createPath($class);
+					
+					if (file_exists($path)) {
+						require_once $path;
+						return true;
+					}
+				}
+			}
 		}
 		
-		require_once $path;
-		return true;
+		if ($this->throw_exceptions)
+			throw new ClassNotFoundError($classname);
+		
+		return false;
 	}
-	
-	/**
-	 * Register the autoloader object to the SPL autoload stack.
-	 * 
-	 * @param bool $prepend Whether to prepend the autoloader function to
-	 *                      the stack, instead of appending it.
-	 */
-	function register($prepend=false) {
-		spl_autoload_register(array($this, 'loadClass'), true, $prepend);
+}
+
+/** 
+ * Exception, thrown when a class file could not be found.
+ */
+class ClassNotFoundError extends FormattedException {
+	function __construct($classname) {
+		parent::__construct('could not load class "%s"', $classname);
 	}
 }
 
