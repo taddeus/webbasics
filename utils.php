@@ -10,6 +10,27 @@
 namespace webbasics;
 
 /**
+ * Format a string using parameters in an associative array.
+ * 
+ * <code>
+ * echo asprintf('foo %(bar)', array('bar' => 'baz'));  // prints 'foo baz'
+ * </code>
+ * 
+ * @param string $format The string to format.
+ * @param array $params An associative array with parameters that are used in $format.
+ * @package WebBasics
+ */
+function asprintf($format, array $params) {
+	return preg_replace_callback(
+		'/%\(([a-z0-9-_ ]*)\)/i',
+		function($matches) use ($params) {
+			return (string)$params[$matches[1]];
+		},
+		$format
+	);
+}
+
+/**
  * Camelize a string.
  * 
  * @param string $string The string to camelize.

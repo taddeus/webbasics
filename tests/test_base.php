@@ -15,14 +15,6 @@ class BaseTest extends PHPUnit_Framework_TestCase {
 		$this->assertEquals(BaseExtension::create('a', 'b'), new BaseExtension('a', 'b'));
 	}
 	
-	function testAsprintf() {
-		$this->assertEquals(webbasics\asprintf('%(foo) baz', array('foo' => 'bar')), 'bar baz');
-		$this->assertEquals(webbasics\asprintf('%(foo) baz %(foo)',
-			array('foo' => 'bar')), 'bar baz bar');
-		$this->assertEquals(webbasics\asprintf('%(bar) baz %(foo)',
-			array('foo' => 'bar', 'bar' => 'foobar')), 'foobar baz bar');
-	}
-	
 	function testPathWithSlash() {
 		$this->assertEquals(Base::pathWithSlash('dirname'), 'dirname/');
 		$this->assertEquals(Base::pathWithSlash('dirname/'), 'dirname/');
