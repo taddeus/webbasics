@@ -19,7 +19,7 @@ require_once 'security.php';
 
 if (defined('WB_INCLUDE_PHPACTIVERECORD') && WB_INCLUDE_PHPACTIVERECORD) {
 	require_once 'php-activerecord/ActiveRecord.php';
-	require_once 'user.php';
+	require_once 'users.php';
 }
 // @codeCoverageIgnoreEnd
 
