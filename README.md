@@ -20,3 +20,5 @@ Documentation
 -------------
 PhpDocumentor can be used to generate documentation in the 'build/docs/'
 directory. Just run 'phpdoc' in the root directory.
+
+A build of the documentation is available [here](http://tkroes.nl/docs/webbasics/).
