@@ -180,7 +180,7 @@ class Logger extends Base {
 	}
 
 	function setAsExceptionHandler() {
-		set_exception_handler(array($this, 'handle_exception'));
+		set_exception_handler(array($this, 'handleException'));
 	}
 
 	function getFormattedProperty($property) {
